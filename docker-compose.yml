@@ -1,0 +1,19 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: bela_agenda
+      POSTGRES_USER: bela
+      POSTGRES_PASSWORD: bela
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bela -d bela_agenda"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - bela-postgres:/var/lib/postgresql/data
+
+volumes:
+  bela-postgres:

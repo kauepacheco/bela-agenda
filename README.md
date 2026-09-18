@@ -1,0 +1,54 @@
+# Bela Agenda
+
+MVP de uma secretária virtual e agenda online para salões e studios de beleza. O produto foi desenhado para estabelecimentos com equipes de 2 a 10 profissionais.
+
+O plano de evolução, as decisões de produto e a próxima tarefa ficam registrados em [`docs/ROADMAP.md`](docs/ROADMAP.md).
+
+## O que já funciona
+
+- painel com indicadores e próximos atendimentos;
+- agenda semanal por profissional;
+- criação de agendamentos com bloqueio de conflito de horário;
+- cadastro de clientes;
+- cadastro de profissionais e serviços;
+- página pública de agendamento;
+- persistência em PostgreSQL com migrações versionadas;
+- cadastro e login com sessões revogáveis;
+- isolamento dos dados privados por estabelecimento.
+
+## Rodando localmente
+
+Requisitos: Node.js 20.9 ou superior e Docker (para o PostgreSQL local).
+
+```bash
+npm install
+docker compose up -d
+npx prisma generate
+npm run db:migrate
+npm run db:seed
+npm run dev
+```
+
+Acesse:
+
+- painel: `http://localhost:3000`
+- login: `http://localhost:3000/entrar`
+- agenda: `http://localhost:3000/agenda`
+- página pública: `http://localhost:3000/agendar/atelier-bela`
+
+O seed recria um estabelecimento fictício chamado Ateliê Bela e alguns agendamentos próximos à data atual. A conta demonstrativa usa `demo@belaagenda.com.br` e a senha `Bela1234!`.
+
+Em homologação e produção, configure `DATABASE_URL` com a conexão do PostgreSQL gerenciado e execute `npm run db:deploy` durante a implantação. Backups automáticos e restaurações devem ser configurados no provedor; a rotina operacional será detalhada em uma etapa própria do M1.
+
+## Verificações
+
+```bash
+npm run typecheck
+npm run lint
+npm run build
+npm audit
+```
+
+## Antes de produção
+
+Esta entrega ainda não está pronta para receber clientes reais. As próximas etapas necessárias incluem recuperação de senha, convites e gestão de membros, configuração de horários de trabalho e folgas, integração oficial com WhatsApp, cobrança de assinatura, política de privacidade, logs e testes de backup.
