@@ -15,6 +15,7 @@ O plano de evolução, as decisões de produto e a próxima tarefa ficam registr
 - persistência em PostgreSQL com migrações versionadas;
 - cadastro e login com sessões revogáveis;
 - recuperação de senha por link de uso único;
+- convites por e-mail e gestão de acessos da equipe pelo proprietário;
 - isolamento dos dados privados por estabelecimento.
 
 ## Rodando localmente
@@ -53,6 +54,8 @@ EMAIL_FROM="Bela Agenda <agenda@seudominio.com.br>"
 
 O domínio do remetente precisa estar validado no Resend. Em desenvolvimento, se `RESEND_API_KEY` ou `EMAIL_FROM` não estiverem configurados, o link é exibido no terminal do servidor e nenhum e-mail é enviado. Em produção, essas variáveis são obrigatórias.
 
+As mesmas configurações são usadas para convites de equipe. Convites expiram em 7 dias, só podem ser usados uma vez e podem ser cancelados pelo proprietário antes da aceitação.
+
 ## Verificações
 
 ```bash
@@ -67,4 +70,4 @@ Os testes iniciam um PostgreSQL efêmero, aplicam as migrações reais e removem
 
 ## Antes de produção
 
-Esta entrega ainda não está pronta para receber clientes reais. As próximas etapas necessárias incluem convites e gestão de membros, configuração de horários de trabalho e folgas, integração oficial com WhatsApp, cobrança de assinatura, política de privacidade, logs e testes de backup.
+Esta entrega ainda não está pronta para receber clientes reais. As próximas etapas necessárias incluem onboarding, configuração de horários de trabalho e folgas, integração oficial com WhatsApp, cobrança de assinatura, política de privacidade, logs e testes de backup.

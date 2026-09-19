@@ -13,19 +13,20 @@ enum MembershipRole {
 }
 
 model Business {
-  id            String         @id @default(cuid())
+  id            String                 @id @default(cuid())
   name          String
-  slug          String         @unique
+  slug          String                 @unique
   phone         String?
   address       String?
-  city          String         @default("Itajaí")
-  timezone      String         @default("America/Sao_Paulo")
-  createdAt     DateTime       @default(now())
+  city          String                 @default("Itajaí")
+  timezone      String                 @default("America/Sao_Paulo")
+  createdAt     DateTime               @default(now())
   professionals Professional[]
   services      Service[]
   clients       Client[]
   appointments  Appointment[]
   memberships   Membership[]
+  invitations   MembershipInvitation[]
 }
 
 model User {
@@ -52,18 +53,36 @@ model PasswordResetToken {
 }
 
 model Membership {
-  id         String         @id @default(cuid())
-  userId     String
-  businessId String
-  role       MembershipRole @default(EMPLOYEE)
-  active     Boolean        @default(true)
-  createdAt  DateTime       @default(now())
-  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  business   Business       @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  sessions   Session[]
+  id              String                 @id @default(cuid())
+  userId          String
+  businessId      String
+  role            MembershipRole         @default(EMPLOYEE)
+  active          Boolean                @default(true)
+  createdAt       DateTime               @default(now())
+  user            User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  business        Business               @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  sessions        Session[]
+  invitationsSent MembershipInvitation[] @relation("InvitationSender")
 
   @@unique([userId, businessId])
   @@index([businessId])
+}
+
+model MembershipInvitation {
+  id                    String         @id @default(cuid())
+  businessId            String
+  invitedByMembershipId String?
+  email                 String
+  role                  MembershipRole @default(EMPLOYEE)
+  tokenHash             String         @unique
+  expiresAt             DateTime
+  acceptedAt            DateTime?
+  createdAt             DateTime       @default(now())
+  business              Business       @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  invitedBy             Membership?    @relation("InvitationSender", fields: [invitedByMembershipId], references: [id], onDelete: SetNull)
+
+  @@index([businessId, email])
+  @@index([expiresAt])
 }
 
 model Session {

@@ -19,6 +19,12 @@ import {
 } from "@/lib/auth-service";
 import { prisma } from "@/lib/prisma";
 import { verifyPassword } from "@/lib/password";
+import {
+  acceptMemberInvitation,
+  createMemberInvitation,
+  getMemberInvitation,
+  removeMember,
+} from "@/lib/team-service";
 
 beforeEach(async () => {
   authState.business = null;
@@ -166,6 +172,119 @@ describe("isolamento entre empresas", () => {
     expect(foreignCatalogResponse.status).toBe(404);
     expect(foreignClientResponse.status).toBe(400);
     await expect(prisma.appointment.count({ where: { businessId: first.businessId } })).resolves.toBe(0);
+  });
+});
+
+describe("gestão de membros", () => {
+  it("permite ao proprietário convidar e aceitar um novo funcionário uma única vez", async () => {
+    const owner = await account(1);
+    const invitation = await createMemberInvitation({
+      actorMembershipId: owner.id,
+      email: "FUNCIONARIA@EXAMPLE.COM",
+      role: "EMPLOYEE",
+    });
+
+    expect(invitation.email).toBe("funcionaria@example.com");
+    await expect(getMemberInvitation(invitation.token)).resolves.toMatchObject({
+      businessName: "Salão 1",
+      existingUser: false,
+      role: "EMPLOYEE",
+    });
+
+    const membership = await acceptMemberInvitation({
+      token: invitation.token,
+      name: "Funcionária Um",
+      password: "SenhaEquipe123",
+    });
+    expect(membership).toMatchObject({ businessId: owner.businessId, role: "EMPLOYEE", active: true });
+    await expect(authenticateCredentials("funcionaria@example.com", "SenhaEquipe123"))
+      .resolves.toMatchObject({ id: membership.id });
+    await expect(acceptMemberInvitation({
+      token: invitation.token,
+      name: "Funcionária Um",
+      password: "SenhaEquipe123",
+    })).rejects.toMatchObject({ code: "INVALID_INVITATION" });
+  });
+
+  it("exige a senha ao convidar um usuário que já possui conta", async () => {
+    const [owner, existingAccount] = await Promise.all([account(1), account(2)]);
+    const invitation = await createMemberInvitation({
+      actorMembershipId: owner.id,
+      email: existingAccount.user.email,
+      role: "EMPLOYEE",
+    });
+
+    await expect(acceptMemberInvitation({
+      token: invitation.token,
+      password: "senha-incorreta",
+    })).rejects.toMatchObject({ code: "INVALID_CREDENTIALS" });
+    const membership = await acceptMemberInvitation({
+      token: invitation.token,
+      password: "SenhaSegura2",
+    });
+    expect(membership.userId).toBe(existingAccount.userId);
+    expect(membership.businessId).toBe(owner.businessId);
+  });
+
+  it("recusa convites expirados", async () => {
+    const owner = await account(1);
+    const now = new Date("2026-09-18T12:00:00.000Z");
+    const invitation = await createMemberInvitation({
+      actorMembershipId: owner.id,
+      email: "funcionaria@example.com",
+      role: "EMPLOYEE",
+      now,
+      durationMs: 1_000,
+    });
+
+    await expect(getMemberInvitation(invitation.token, new Date(now.getTime() + 1_000)))
+      .resolves.toBeNull();
+    await expect(acceptMemberInvitation({
+      token: invitation.token,
+      name: "Funcionária",
+      password: "SenhaEquipe123",
+      now: new Date(now.getTime() + 1_000),
+    })).rejects.toMatchObject({ code: "INVALID_INVITATION" });
+  });
+
+  it("impede funcionário de convidar ou remover membros", async () => {
+    const owner = await account(1);
+    const employeeUser = await prisma.user.create({
+      data: { name: "Funcionária", email: "funcionaria@example.com", passwordHash: "irrelevante" },
+    });
+    const employee = await prisma.membership.create({
+      data: { userId: employeeUser.id, businessId: owner.businessId, role: "EMPLOYEE" },
+    });
+
+    await expect(createMemberInvitation({
+      actorMembershipId: employee.id,
+      email: "outra@example.com",
+      role: "EMPLOYEE",
+    })).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await expect(removeMember(employee.id, owner.id)).rejects.toMatchObject({ code: "FORBIDDEN" });
+  });
+
+  it("preserva o último proprietário ativo e revoga sessões de membros removidos", async () => {
+    const owner = await account(1);
+    await expect(removeMember(owner.id, owner.id)).rejects.toMatchObject({ code: "LAST_OWNER" });
+
+    const invitation = await createMemberInvitation({
+      actorMembershipId: owner.id,
+      email: "socia@example.com",
+      role: "OWNER",
+    });
+    const secondOwner = await acceptMemberInvitation({
+      token: invitation.token,
+      name: "Sócia",
+      password: "SenhaSociedade123",
+    });
+    const session = await createSessionRecord(secondOwner.id);
+
+    await removeMember(owner.id, secondOwner.id);
+    await expect(getSessionContextFromToken(session.token)).resolves.toBeNull();
+    await expect(prisma.membership.findUnique({ where: { id: secondOwner.id } }))
+      .resolves.toMatchObject({ active: false });
+    await expect(removeMember(owner.id, owner.id)).rejects.toMatchObject({ code: "LAST_OWNER" });
   });
 });
 

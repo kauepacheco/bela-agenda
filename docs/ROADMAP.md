@@ -39,7 +39,7 @@ Proposta de valor:
 
 Limitações atuais:
 
-- O gerenciamento de membros ainda não foi implementado.
+- O onboarding inicial ainda não foi implementado.
 - A implantação de homologação com PostgreSQL gerenciado ainda não foi criada.
 - Horários de trabalho e folgas ainda não são configuráveis.
 - O WhatsApp ainda não está integrado.
@@ -66,7 +66,7 @@ Objetivo: permitir que um salão crie uma conta e tenha um ambiente isolado e co
 - [x] Impedir acesso a dados de outra empresa em todas as consultas e mutações.
 - [x] Criar papéis iniciais: proprietário e funcionário.
 - [x] Adicionar testes automatizados de cadastro, login, expiração de sessão e isolamento entre empresas.
-- [ ] Permitir convite e remoção de membros da equipe.
+- [x] Permitir convite e remoção de membros da equipe.
 
 ### Onboarding
 
@@ -174,7 +174,7 @@ Estes itens só devem entrar após validação do núcleo de agenda e WhatsApp:
 
 ## Próxima tarefa
 
-Implementar convites e remoção de membros da equipe, restringindo essas operações ao proprietário e preservando ao menos um proprietário ativo por estabelecimento.
+Criar o assistente de configuração inicial para coletar nome, endereço, cidade e WhatsApp do estabelecimento.
 
 ## Decisões registradas
 
@@ -191,6 +191,7 @@ Implementar convites e remoção de membros da equipe, restringindo essas opera�
 | 2026-09-18 | Modelar o vínculo entre usuários e estabelecimentos por associações com papéis `OWNER` e `EMPLOYEE`; cada sessão aponta para uma associação ativa. | Preparar convites e equipes e impedir que identificadores enviados pelo cliente definam o tenant consultado. |
 | 2026-09-18 | Executar testes de autenticação e isolamento contra um PostgreSQL efêmero com as migrações reais. | Detectar divergências específicas do banco de produção sem exigir que o PostgreSQL local do desenvolvedor esteja ativo. |
 | 2026-09-18 | Usar o Resend para e-mails transacionais de recuperação de senha; armazenar somente o hash de tokens aleatórios, válidos por 30 minutos e uma única utilização. | Manter a integração simples via HTTP, evitar exposição de tokens no banco e limitar o impacto de links vazados. |
+| 2026-09-18 | Enviar convites de equipe por links de uso único válidos por 7 dias, permitir papéis de proprietário e funcionário e desativar vínculos removidos com revogação imediata de sessões. | Evitar compartilhar senhas, preservar histórico de vínculos e garantir que acessos removidos deixem de funcionar imediatamente. |
 
 ## Orientação para próximos agentes
 
