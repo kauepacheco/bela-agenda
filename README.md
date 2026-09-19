@@ -45,9 +45,12 @@ Em homologação e produção, configure `DATABASE_URL` com a conexão do Postgr
 ```bash
 npm run typecheck
 npm run lint
+npm test
 npm run build
 npm audit
 ```
+
+Os testes iniciam um PostgreSQL efêmero, aplicam as migrações reais e removem a instância ao terminar. Não é necessário manter o banco do Docker ativo para executá-los.
 
 ## Antes de produção
 

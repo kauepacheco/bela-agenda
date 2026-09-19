@@ -65,6 +65,7 @@ Objetivo: permitir que um salão crie uma conta e tenha um ambiente isolado e co
 - [x] Eliminar o uso do estabelecimento demonstrativo fixo nas rotas.
 - [x] Impedir acesso a dados de outra empresa em todas as consultas e mutações.
 - [x] Criar papéis iniciais: proprietário e funcionário.
+- [x] Adicionar testes automatizados de cadastro, login, expiração de sessão e isolamento entre empresas.
 - [ ] Permitir convite e remoção de membros da equipe.
 
 ### Onboarding
@@ -173,7 +174,7 @@ Estes itens só devem entrar após validação do núcleo de agenda e WhatsApp:
 
 ## Próxima tarefa
 
-Adicionar testes automatizados de cadastro, login, expiração de sessão e isolamento entre duas empresas usando um PostgreSQL efêmero. Em seguida, implementar o fluxo de recuperação de senha.
+Implementar o fluxo de recuperação de senha com tokens de uso único e validade curta, incluindo a definição do provedor de e-mail transacional para entregar o link ao usuário.
 
 ## Decisões registradas
 
@@ -188,6 +189,7 @@ Adicionar testes automatizados de cadastro, login, expiração de sessão e isol
 | 2026-09-18 | Adotar PostgreSQL gerenciado em homologação e produção, com PostgreSQL local no desenvolvimento e migrações versionadas pelo Prisma. | Usar o mesmo mecanismo de banco em todos os ambientes reduz divergências; um serviço gerenciado simplifica disponibilidade, backups e restauração. |
 | 2026-09-18 | Implementar autenticação inicial por e-mail e senha, com senha derivada por `scrypt`, sessões opacas persistidas no banco e cookie `HttpOnly`, `SameSite=Lax` e `Secure` em produção. | Entregar cadastro e login sem dependência de um provedor externo, permitir revogação de sessões e manter o contexto da empresa validado no servidor. |
 | 2026-09-18 | Modelar o vínculo entre usuários e estabelecimentos por associações com papéis `OWNER` e `EMPLOYEE`; cada sessão aponta para uma associação ativa. | Preparar convites e equipes e impedir que identificadores enviados pelo cliente definam o tenant consultado. |
+| 2026-09-18 | Executar testes de autenticação e isolamento contra um PostgreSQL efêmero com as migrações reais. | Detectar divergências específicas do banco de produção sem exigir que o PostgreSQL local do desenvolvedor esteja ativo. |
 
 ## Orientação para próximos agentes
 
