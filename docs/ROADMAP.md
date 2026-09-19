@@ -39,7 +39,7 @@ Proposta de valor:
 
 Limitações atuais:
 
-- O onboarding ainda não cadastra profissionais, serviços e horários.
+- O onboarding ainda não configura horários de funcionamento.
 - A implantação de homologação com PostgreSQL gerenciado ainda não foi criada.
 - Horários de trabalho e folgas ainda não são configuráveis.
 - O WhatsApp ainda não está integrado.
@@ -72,7 +72,7 @@ Objetivo: permitir que um salão crie uma conta e tenha um ambiente isolado e co
 
 - [x] Criar assistente de configuração inicial.
 - [x] Coletar nome, endereço, cidade e WhatsApp do estabelecimento.
-- [ ] Cadastrar profissionais e serviços durante o onboarding.
+- [x] Cadastrar profissionais e serviços durante o onboarding.
 - [ ] Configurar horários de funcionamento.
 - [x] Gerar um slug público único.
 - [ ] Exibir checklist de ativação no painel.
@@ -174,7 +174,7 @@ Estes itens só devem entrar após validação do núcleo de agenda e WhatsApp:
 
 ## Próxima tarefa
 
-Cadastrar profissionais e serviços durante o onboarding, mantendo o isolamento por estabelecimento.
+Configurar horários de funcionamento durante o onboarding.
 
 ## Decisões registradas
 
@@ -193,6 +193,7 @@ Cadastrar profissionais e serviços durante o onboarding, mantendo o isolamento 
 | 2026-09-18 | Usar o Resend para e-mails transacionais de recuperação de senha; armazenar somente o hash de tokens aleatórios, válidos por 30 minutos e uma única utilização. | Manter a integração simples via HTTP, evitar exposição de tokens no banco e limitar o impacto de links vazados. |
 | 2026-09-18 | Enviar convites de equipe por links de uso único válidos por 7 dias, permitir papéis de proprietário e funcionário e desativar vínculos removidos com revogação imediata de sessões. | Evitar compartilhar senhas, preservar histórico de vínculos e garantir que acessos removidos deixem de funcionar imediatamente. |
 | 2026-09-18 | Exigir que novas contas concluam nome, endereço, cidade e WhatsApp antes de acessar páginas e mutações operacionais; considerar contas anteriores já configuradas na migração. | Garantir dados mínimos para a experiência pública sem interromper estabelecimentos que já utilizavam o sistema. |
+| 2026-09-18 | Criar profissionais, serviços e seus vínculos na mesma transação que conclui o onboarding, derivando o estabelecimento da associação autenticada. | Evitar configurações parciais, impedir mistura de dados entre empresas e entregar uma agenda utilizável no primeiro acesso ao painel. |
 
 ## Orientação para próximos agentes
 

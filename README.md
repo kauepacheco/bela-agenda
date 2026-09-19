@@ -14,7 +14,7 @@ O plano de evolução, as decisões de produto e a próxima tarefa ficam registr
 - página pública de agendamento;
 - persistência em PostgreSQL com migrações versionadas;
 - cadastro e login com sessões revogáveis;
-- onboarding obrigatório com dados essenciais do estabelecimento;
+- onboarding obrigatório com dados do estabelecimento, profissionais e serviços;
 - recuperação de senha por link de uso único;
 - convites por e-mail e gestão de acessos da equipe pelo proprietário;
 - isolamento dos dados privados por estabelecimento.

@@ -290,7 +290,28 @@ describe("gestão de membros", () => {
 });
 
 describe("onboarding do estabelecimento", () => {
-  it("mantém novas contas pendentes até o proprietário informar os dados essenciais", async () => {
+  const onboardingCatalog = {
+    professionals: [
+      { key: "ana", name: "Ana Lima", role: "Cabeleireira", color: "#D97757" },
+      { key: "bia", name: "Bia Souza", role: "Manicure", color: "#547568" },
+    ],
+    services: [
+      {
+        name: "Corte feminino",
+        durationMin: 60,
+        priceCents: 8_000,
+        professionalKeys: ["ana"],
+      },
+      {
+        name: "Hidratação",
+        durationMin: 45,
+        priceCents: 6_500,
+        professionalKeys: ["ana", "bia"],
+      },
+    ],
+  };
+
+  it("conclui os dados essenciais e cria equipe e serviços vinculados", async () => {
     const owner = await account(1);
     expect(owner.business.onboardingCompletedAt).toBeNull();
 
@@ -301,6 +322,7 @@ describe("onboarding do estabelecimento", () => {
       address: "Rua das Flores, 123",
       city: "Itajaí",
       phone: "(47) 99999-1234",
+      ...onboardingCatalog,
       now: completedAt,
     });
 
@@ -311,6 +333,21 @@ describe("onboarding do estabelecimento", () => {
       phone: "47999991234",
       onboardingCompletedAt: completedAt,
     });
+    await expect(prisma.professional.findMany({
+      where: { businessId: owner.businessId },
+      orderBy: { name: "asc" },
+    })).resolves.toMatchObject([
+      { name: "Ana Lima", role: "Cabeleireira", color: "#D97757" },
+      { name: "Bia Souza", role: "Manicure", color: "#547568" },
+    ]);
+    const services = await prisma.service.findMany({
+      where: { businessId: owner.businessId },
+      include: { professionals: { include: { professional: true } } },
+      orderBy: { name: "asc" },
+    });
+    expect(services).toHaveLength(2);
+    expect(services.find((service) => service.name === "Hidratação")?.professionals
+      .map(({ professional }) => professional.name).sort()).toEqual(["Ana Lima", "Bia Souza"]);
   });
 
   it("impede funcionário de concluir ou alterar o onboarding", async () => {
@@ -328,9 +365,53 @@ describe("onboarding do estabelecimento", () => {
       address: "Rua indevida, 1",
       city: "Outra cidade",
       phone: "47999999999",
+      ...onboardingCatalog,
     })).rejects.toMatchObject({ code: "FORBIDDEN" });
     await expect(prisma.business.findUnique({ where: { id: owner.businessId } }))
       .resolves.toMatchObject({ name: "Salão 1", onboardingCompletedAt: null });
+    await expect(prisma.professional.count({ where: { businessId: owner.businessId } })).resolves.toBe(0);
+    await expect(prisma.service.count({ where: { businessId: owner.businessId } })).resolves.toBe(0);
+  });
+
+  it("mantém catálogos isolados por empresa e não duplica uma conclusão repetida", async () => {
+    const [first, second] = await Promise.all([account(1), account(2)]);
+    await Promise.all([
+      completeBusinessOnboarding({
+        actorMembershipId: first.id,
+        name: "Salão Primeiro",
+        address: "Rua Um, 10",
+        city: "Itajaí",
+        phone: "47999990001",
+        ...onboardingCatalog,
+      }),
+      completeBusinessOnboarding({
+        actorMembershipId: second.id,
+        name: "Salão Segundo",
+        address: "Rua Dois, 20",
+        city: "Navegantes",
+        phone: "47999990002",
+        professionals: [{ key: "carol", name: "Carol", role: "Esteticista", color: "#786283" }],
+        services: [{ name: "Limpeza de pele", durationMin: 90, priceCents: 12_000, professionalKeys: ["carol"] }],
+      }),
+    ]);
+
+    await completeBusinessOnboarding({
+      actorMembershipId: first.id,
+      name: "Nome que não deve substituir",
+      address: "Outra rua, 30",
+      city: "Outra cidade",
+      phone: "47999990003",
+      ...onboardingCatalog,
+    });
+
+    await expect(prisma.business.findUnique({ where: { id: first.businessId } }))
+      .resolves.toMatchObject({ name: "Salão Primeiro" });
+    await expect(prisma.professional.count({ where: { businessId: first.businessId } })).resolves.toBe(2);
+    await expect(prisma.service.count({ where: { businessId: first.businessId } })).resolves.toBe(2);
+    await expect(prisma.professional.findMany({ where: { businessId: second.businessId } }))
+      .resolves.toMatchObject([{ name: "Carol" }]);
+    await expect(prisma.service.findMany({ where: { businessId: second.businessId } }))
+      .resolves.toMatchObject([{ name: "Limpeza de pele" }]);
   });
 });
 
