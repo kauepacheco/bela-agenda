@@ -10,8 +10,12 @@ import { GET as getAppointments, PATCH as patchAppointment, POST as postAppointm
 import {
   authenticateCredentials,
   createAccount,
+  createPasswordResetToken,
   createSessionRecord,
   getSessionContextFromToken,
+  hashPasswordResetToken,
+  isPasswordResetTokenValid,
+  resetPasswordWithToken,
 } from "@/lib/auth-service";
 import { prisma } from "@/lib/prisma";
 import { verifyPassword } from "@/lib/password";
@@ -67,6 +71,44 @@ describe("autenticação", () => {
     await expect(getSessionContextFromToken(token, new Date(expiresAt.getTime() - 1)))
       .resolves.toMatchObject({ membershipId: membership.id, business: { id: membership.businessId } });
     await expect(getSessionContextFromToken(token, expiresAt)).resolves.toBeNull();
+  });
+
+  it("redefine a senha uma única vez e revoga as sessões existentes", async () => {
+    const membership = await account(1);
+    const session = await createSessionRecord(membership.id);
+    const reset = await createPasswordResetToken("DONA1@EXAMPLE.COM");
+
+    expect(reset).not.toBeNull();
+    const storedToken = await prisma.passwordResetToken.findUnique({
+      where: { tokenHash: hashPasswordResetToken(reset!.token) },
+    });
+    expect(storedToken?.tokenHash).not.toBe(reset!.token);
+    await expect(isPasswordResetTokenValid(reset!.token)).resolves.toBe(true);
+    await expect(resetPasswordWithToken(reset!.token, "NovaSenha123")).resolves.toBe(true);
+    await expect(resetPasswordWithToken(reset!.token, "OutraSenha456")).resolves.toBe(false);
+    await expect(isPasswordResetTokenValid(reset!.token)).resolves.toBe(false);
+    await expect(authenticateCredentials("dona1@example.com", "SenhaSegura1")).resolves.toBeNull();
+    await expect(authenticateCredentials("dona1@example.com", "NovaSenha123"))
+      .resolves.toMatchObject({ id: membership.id });
+    await expect(getSessionContextFromToken(session.token)).resolves.toBeNull();
+  });
+
+  it("recusa token expirado e invalida o anterior ao emitir outro", async () => {
+    await account(1);
+    const now = new Date("2026-09-18T12:00:00.000Z");
+    const first = await createPasswordResetToken("dona1@example.com", { now, durationMs: 1_000 });
+    const second = await createPasswordResetToken("dona1@example.com", { now, durationMs: 2_000 });
+
+    await expect(isPasswordResetTokenValid(first!.token, now)).resolves.toBe(false);
+    await expect(resetPasswordWithToken(second!.token, "NovaSenha123", new Date(now.getTime() + 2_000)))
+      .resolves.toBe(false);
+    await expect(authenticateCredentials("dona1@example.com", "SenhaSegura1"))
+      .resolves.toBeTruthy();
+  });
+
+  it("não cria token para e-mail desconhecido", async () => {
+    await expect(createPasswordResetToken("ninguem@example.com")).resolves.toBeNull();
+    await expect(prisma.passwordResetToken.count()).resolves.toBe(0);
   });
 });
 

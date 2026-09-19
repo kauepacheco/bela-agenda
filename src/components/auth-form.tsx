@@ -23,6 +23,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
         </>}
         <label>E-mail<input name="email" type="email" required autoComplete="email" placeholder="voce@exemplo.com" /></label>
         <label>Senha<input name="password" type="password" required minLength={8} autoComplete={signup ? "new-password" : "current-password"} placeholder="Mínimo de 8 caracteres" /></label>
+        {!signup && <Link className="forgot-password" href="/esqueci-senha">Esqueci minha senha</Link>}
         {state?.error && <p className="form-error">{state.error}</p>}
         <button className="button primary" disabled={pending}>{pending ? "Aguarde..." : signup ? "Criar conta" : "Entrar"}</button>
       </form>

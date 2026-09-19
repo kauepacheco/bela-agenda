@@ -39,7 +39,7 @@ Proposta de valor:
 
 Limitações atuais:
 
-- A recuperação de senha e o gerenciamento de membros ainda não foram implementados.
+- O gerenciamento de membros ainda não foi implementado.
 - A implantação de homologação com PostgreSQL gerenciado ainda não foi criada.
 - Horários de trabalho e folgas ainda não são configuráveis.
 - O WhatsApp ainda não está integrado.
@@ -60,7 +60,7 @@ Objetivo: permitir que um salão crie uma conta e tenha um ambiente isolado e co
 ### Autenticação e autorização
 
 - [x] Criar cadastro e login.
-- [ ] Implementar recuperação de senha.
+- [x] Implementar recuperação de senha.
 - [x] Associar cada usuário a um estabelecimento.
 - [x] Eliminar o uso do estabelecimento demonstrativo fixo nas rotas.
 - [x] Impedir acesso a dados de outra empresa em todas as consultas e mutações.
@@ -174,7 +174,7 @@ Estes itens só devem entrar após validação do núcleo de agenda e WhatsApp:
 
 ## Próxima tarefa
 
-Implementar o fluxo de recuperação de senha com tokens de uso único e validade curta, incluindo a definição do provedor de e-mail transacional para entregar o link ao usuário.
+Implementar convites e remoção de membros da equipe, restringindo essas operações ao proprietário e preservando ao menos um proprietário ativo por estabelecimento.
 
 ## Decisões registradas
 
@@ -190,6 +190,7 @@ Implementar o fluxo de recuperação de senha com tokens de uso único e validad
 | 2026-09-18 | Implementar autenticação inicial por e-mail e senha, com senha derivada por `scrypt`, sessões opacas persistidas no banco e cookie `HttpOnly`, `SameSite=Lax` e `Secure` em produção. | Entregar cadastro e login sem dependência de um provedor externo, permitir revogação de sessões e manter o contexto da empresa validado no servidor. |
 | 2026-09-18 | Modelar o vínculo entre usuários e estabelecimentos por associações com papéis `OWNER` e `EMPLOYEE`; cada sessão aponta para uma associação ativa. | Preparar convites e equipes e impedir que identificadores enviados pelo cliente definam o tenant consultado. |
 | 2026-09-18 | Executar testes de autenticação e isolamento contra um PostgreSQL efêmero com as migrações reais. | Detectar divergências específicas do banco de produção sem exigir que o PostgreSQL local do desenvolvedor esteja ativo. |
+| 2026-09-18 | Usar o Resend para e-mails transacionais de recuperação de senha; armazenar somente o hash de tokens aleatórios, válidos por 30 minutos e uma única utilização. | Manter a integração simples via HTTP, evitar exposição de tokens no banco e limitar o impacto de links vazados. |
 
 ## Orientação para próximos agentes
 

@@ -3,9 +3,16 @@ import { prisma } from "@/lib/prisma";
 import { hashPassword, verifyPassword } from "@/lib/password";
 
 export const SESSION_DURATION_MS = 30 * 24 * 60 * 60 * 1000;
+export const PASSWORD_RESET_DURATION_MS = 30 * 60 * 1000;
 
 export function hashSessionToken(token: string) {
   return createHash("sha256").update(token).digest("hex");
+}
+
+export const hashPasswordResetToken = hashSessionToken;
+
+function isPasswordResetTokenFormatValid(token: string) {
+  return /^[A-Za-z0-9_-]{43}$/.test(token);
 }
 
 function slugify(value: string) {
@@ -99,4 +106,75 @@ export async function getSessionContextFromToken(token: string, now = new Date()
     },
     business: session.membership.business,
   };
+}
+
+export async function createPasswordResetToken(
+  email: string,
+  options: { now?: Date; durationMs?: number } = {},
+) {
+  const user = await prisma.user.findUnique({
+    where: { email: email.trim().toLowerCase() },
+    select: { id: true, email: true },
+  });
+  if (!user) return null;
+
+  const token = randomBytes(32).toString("base64url");
+  const now = options.now ?? new Date();
+  const expiresAt = new Date(now.getTime() + (options.durationMs ?? PASSWORD_RESET_DURATION_MS));
+
+  await prisma.$transaction([
+    prisma.passwordResetToken.deleteMany({
+      where: { userId: user.id, usedAt: null },
+    }),
+    prisma.passwordResetToken.create({
+      data: { userId: user.id, tokenHash: hashPasswordResetToken(token), expiresAt },
+    }),
+  ]);
+
+  return { token, expiresAt, email: user.email };
+}
+
+export async function discardPasswordResetToken(token: string) {
+  if (!isPasswordResetTokenFormatValid(token)) return;
+  await prisma.passwordResetToken.deleteMany({
+    where: { tokenHash: hashPasswordResetToken(token), usedAt: null },
+  });
+}
+
+export async function isPasswordResetTokenValid(token: string, now = new Date()) {
+  if (!isPasswordResetTokenFormatValid(token)) return false;
+  const record = await prisma.passwordResetToken.findUnique({
+    where: { tokenHash: hashPasswordResetToken(token) },
+    select: { expiresAt: true, usedAt: true },
+  });
+  return Boolean(record && !record.usedAt && record.expiresAt > now);
+}
+
+export async function resetPasswordWithToken(token: string, password: string, now = new Date()) {
+  if (!isPasswordResetTokenFormatValid(token)) return false;
+  const tokenHash = hashPasswordResetToken(token);
+  const passwordHash = await hashPassword(password);
+
+  return prisma.$transaction(async (tx) => {
+    const claimed = await tx.passwordResetToken.updateMany({
+      where: { tokenHash, usedAt: null, expiresAt: { gt: now } },
+      data: { usedAt: now },
+    });
+    if (claimed.count !== 1) return false;
+
+    const record = await tx.passwordResetToken.findUnique({
+      where: { tokenHash },
+      select: { userId: true },
+    });
+    if (!record) return false;
+
+    await tx.user.update({ where: { id: record.userId }, data: { passwordHash } });
+    await tx.session.deleteMany({
+      where: { membership: { userId: record.userId } },
+    });
+    await tx.passwordResetToken.deleteMany({
+      where: { userId: record.userId, usedAt: null },
+    });
+    return true;
+  });
 }

@@ -14,6 +14,7 @@ O plano de evolução, as decisões de produto e a próxima tarefa ficam registr
 - página pública de agendamento;
 - persistência em PostgreSQL com migrações versionadas;
 - cadastro e login com sessões revogáveis;
+- recuperação de senha por link de uso único;
 - isolamento dos dados privados por estabelecimento.
 
 ## Rodando localmente
@@ -40,6 +41,18 @@ O seed recria um estabelecimento fictício chamado Ateliê Bela e alguns agendam
 
 Em homologação e produção, configure `DATABASE_URL` com a conexão do PostgreSQL gerenciado e execute `npm run db:deploy` durante a implantação. Backups automáticos e restaurações devem ser configurados no provedor; a rotina operacional será detalhada em uma etapa própria do M1.
 
+## E-mail de recuperação de senha
+
+O provedor transacional adotado é o [Resend](https://resend.com). Para entregar os links de recuperação, configure:
+
+```bash
+APP_URL="https://agenda.seudominio.com.br"
+RESEND_API_KEY="re_..."
+EMAIL_FROM="Bela Agenda <agenda@seudominio.com.br>"
+```
+
+O domínio do remetente precisa estar validado no Resend. Em desenvolvimento, se `RESEND_API_KEY` ou `EMAIL_FROM` não estiverem configurados, o link é exibido no terminal do servidor e nenhum e-mail é enviado. Em produção, essas variáveis são obrigatórias.
+
 ## Verificações
 
 ```bash
@@ -54,4 +67,4 @@ Os testes iniciam um PostgreSQL efêmero, aplicam as migrações reais e removem
 
 ## Antes de produção
 
-Esta entrega ainda não está pronta para receber clientes reais. As próximas etapas necessárias incluem recuperação de senha, convites e gestão de membros, configuração de horários de trabalho e folgas, integração oficial com WhatsApp, cobrança de assinatura, política de privacidade, logs e testes de backup.
+Esta entrega ainda não está pronta para receber clientes reais. As próximas etapas necessárias incluem convites e gestão de membros, configuração de horários de trabalho e folgas, integração oficial com WhatsApp, cobrança de assinatura, política de privacidade, logs e testes de backup.
