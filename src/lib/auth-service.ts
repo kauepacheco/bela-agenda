@@ -59,6 +59,7 @@ export async function authenticateCredentials(email: string, password: string) {
     include: {
       memberships: {
         where: { active: true },
+        include: { business: true },
         orderBy: { createdAt: "asc" },
         take: 1,
       },

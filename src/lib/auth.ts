@@ -30,15 +30,23 @@ export async function deleteCurrentSession() {
   cookieStore.delete(SESSION_COOKIE);
 }
 
-export const getCurrentContext = cache(async () => {
+const getAnyCurrentContext = cache(async () => {
   const token = (await cookies()).get(SESSION_COOKIE)?.value;
   if (!token) return null;
 
   return getSessionContextFromToken(token);
 });
 
-export async function requireAuthContext() {
-  const context = await getCurrentContext();
+export async function getCurrentContext() {
+  const context = await getAnyCurrentContext();
+  return context?.business.onboardingCompletedAt ? context : null;
+}
+
+export async function requireAuthContext(options: { allowIncompleteOnboarding?: boolean } = {}) {
+  const context = await getAnyCurrentContext();
   if (!context) redirect("/entrar");
+  if (!options.allowIncompleteOnboarding && !context.business.onboardingCompletedAt) {
+    redirect("/onboarding");
+  }
   return context;
 }

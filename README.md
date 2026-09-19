@@ -14,6 +14,7 @@ O plano de evolução, as decisões de produto e a próxima tarefa ficam registr
 - página pública de agendamento;
 - persistência em PostgreSQL com migrações versionadas;
 - cadastro e login com sessões revogáveis;
+- onboarding obrigatório com dados essenciais do estabelecimento;
 - recuperação de senha por link de uso único;
 - convites por e-mail e gestão de acessos da equipe pelo proprietário;
 - isolamento dos dados privados por estabelecimento.
@@ -35,6 +36,7 @@ Acesse:
 
 - painel: `http://localhost:3000`
 - login: `http://localhost:3000/entrar`
+- onboarding: `http://localhost:3000/onboarding`
 - agenda: `http://localhost:3000/agenda`
 - página pública: `http://localhost:3000/agendar/atelier-bela`
 

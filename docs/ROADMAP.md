@@ -39,7 +39,7 @@ Proposta de valor:
 
 Limitações atuais:
 
-- O onboarding inicial ainda não foi implementado.
+- O onboarding ainda não cadastra profissionais, serviços e horários.
 - A implantação de homologação com PostgreSQL gerenciado ainda não foi criada.
 - Horários de trabalho e folgas ainda não são configuráveis.
 - O WhatsApp ainda não está integrado.
@@ -70,8 +70,8 @@ Objetivo: permitir que um salão crie uma conta e tenha um ambiente isolado e co
 
 ### Onboarding
 
-- [ ] Criar assistente de configuração inicial.
-- [ ] Coletar nome, endereço, cidade e WhatsApp do estabelecimento.
+- [x] Criar assistente de configuração inicial.
+- [x] Coletar nome, endereço, cidade e WhatsApp do estabelecimento.
 - [ ] Cadastrar profissionais e serviços durante o onboarding.
 - [ ] Configurar horários de funcionamento.
 - [x] Gerar um slug público único.
@@ -174,7 +174,7 @@ Estes itens só devem entrar após validação do núcleo de agenda e WhatsApp:
 
 ## Próxima tarefa
 
-Criar o assistente de configuração inicial para coletar nome, endereço, cidade e WhatsApp do estabelecimento.
+Cadastrar profissionais e serviços durante o onboarding, mantendo o isolamento por estabelecimento.
 
 ## Decisões registradas
 
@@ -192,6 +192,7 @@ Criar o assistente de configuração inicial para coletar nome, endereço, cidad
 | 2026-09-18 | Executar testes de autenticação e isolamento contra um PostgreSQL efêmero com as migrações reais. | Detectar divergências específicas do banco de produção sem exigir que o PostgreSQL local do desenvolvedor esteja ativo. |
 | 2026-09-18 | Usar o Resend para e-mails transacionais de recuperação de senha; armazenar somente o hash de tokens aleatórios, válidos por 30 minutos e uma única utilização. | Manter a integração simples via HTTP, evitar exposição de tokens no banco e limitar o impacto de links vazados. |
 | 2026-09-18 | Enviar convites de equipe por links de uso único válidos por 7 dias, permitir papéis de proprietário e funcionário e desativar vínculos removidos com revogação imediata de sessões. | Evitar compartilhar senhas, preservar histórico de vínculos e garantir que acessos removidos deixem de funcionar imediatamente. |
+| 2026-09-18 | Exigir que novas contas concluam nome, endereço, cidade e WhatsApp antes de acessar páginas e mutações operacionais; considerar contas anteriores já configuradas na migração. | Garantir dados mínimos para a experiência pública sem interromper estabelecimentos que já utilizavam o sistema. |
 
 ## Orientação para próximos agentes
 

@@ -13,20 +13,21 @@ enum MembershipRole {
 }
 
 model Business {
-  id            String                 @id @default(cuid())
-  name          String
-  slug          String                 @unique
-  phone         String?
-  address       String?
-  city          String                 @default("Itajaí")
-  timezone      String                 @default("America/Sao_Paulo")
-  createdAt     DateTime               @default(now())
-  professionals Professional[]
-  services      Service[]
-  clients       Client[]
-  appointments  Appointment[]
-  memberships   Membership[]
-  invitations   MembershipInvitation[]
+  id                    String                 @id @default(cuid())
+  name                  String
+  slug                  String                 @unique
+  phone                 String?
+  address               String?
+  city                  String                 @default("Itajaí")
+  timezone              String                 @default("America/Sao_Paulo")
+  onboardingCompletedAt DateTime?
+  createdAt             DateTime               @default(now())
+  professionals         Professional[]
+  services              Service[]
+  clients               Client[]
+  appointments          Appointment[]
+  memberships           Membership[]
+  invitations           MembershipInvitation[]
 }
 
 model User {

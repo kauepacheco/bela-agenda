@@ -21,6 +21,7 @@ async function main() {
       slug: "atelier-bela",
       phone: "(47) 99999-1234",
       address: "Rua Samuel Heusi, 120",
+      onboardingCompletedAt: new Date(),
     },
   });
 

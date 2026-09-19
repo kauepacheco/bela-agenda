@@ -19,6 +19,7 @@ import {
 } from "@/lib/auth-service";
 import { prisma } from "@/lib/prisma";
 import { verifyPassword } from "@/lib/password";
+import { completeBusinessOnboarding } from "@/lib/onboarding-service";
 import {
   acceptMemberInvitation,
   createMemberInvitation,
@@ -285,6 +286,51 @@ describe("gestão de membros", () => {
     await expect(prisma.membership.findUnique({ where: { id: secondOwner.id } }))
       .resolves.toMatchObject({ active: false });
     await expect(removeMember(owner.id, owner.id)).rejects.toMatchObject({ code: "LAST_OWNER" });
+  });
+});
+
+describe("onboarding do estabelecimento", () => {
+  it("mantém novas contas pendentes até o proprietário informar os dados essenciais", async () => {
+    const owner = await account(1);
+    expect(owner.business.onboardingCompletedAt).toBeNull();
+
+    const completedAt = new Date("2026-09-18T15:00:00.000Z");
+    const business = await completeBusinessOnboarding({
+      actorMembershipId: owner.id,
+      name: "Salão Renovado",
+      address: "Rua das Flores, 123",
+      city: "Itajaí",
+      phone: "(47) 99999-1234",
+      now: completedAt,
+    });
+
+    expect(business).toMatchObject({
+      name: "Salão Renovado",
+      address: "Rua das Flores, 123",
+      city: "Itajaí",
+      phone: "47999991234",
+      onboardingCompletedAt: completedAt,
+    });
+  });
+
+  it("impede funcionário de concluir ou alterar o onboarding", async () => {
+    const owner = await account(1);
+    const employeeUser = await prisma.user.create({
+      data: { name: "Funcionária", email: "equipe@example.com", passwordHash: "irrelevante" },
+    });
+    const employee = await prisma.membership.create({
+      data: { userId: employeeUser.id, businessId: owner.businessId, role: "EMPLOYEE" },
+    });
+
+    await expect(completeBusinessOnboarding({
+      actorMembershipId: employee.id,
+      name: "Nome indevido",
+      address: "Rua indevida, 1",
+      city: "Outra cidade",
+      phone: "47999999999",
+    })).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await expect(prisma.business.findUnique({ where: { id: owner.businessId } }))
+      .resolves.toMatchObject({ name: "Salão 1", onboardingCompletedAt: null });
   });
 });
 

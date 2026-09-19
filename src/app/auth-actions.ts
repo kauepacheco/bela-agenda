@@ -37,7 +37,7 @@ export async function signupAction(_state: AuthState, formData: FormData): Promi
     return { error: "Não foi possível criar a conta agora. Tente novamente." };
   }
 
-  redirect("/");
+  redirect("/onboarding");
 }
 
 export async function loginAction(_state: AuthState, formData: FormData): Promise<AuthState> {
@@ -48,7 +48,7 @@ export async function loginAction(_state: AuthState, formData: FormData): Promis
   if (!membership) return { error: "E-mail ou senha inválidos." };
 
   await createSession(membership.id);
-  redirect("/");
+  redirect(membership.business.onboardingCompletedAt ? "/" : "/onboarding");
 }
 
 export async function logoutAction() {
