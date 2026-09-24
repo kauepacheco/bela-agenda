@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { DM_Sans, Manrope } from "next/font/google";
 import "./globals.css";
+import "./refinements.css";
 
 const body = DM_Sans({ subsets: ["latin"], variable: "--font-body" });
 const display = Manrope({ subsets: ["latin"], variable: "--font-display" });

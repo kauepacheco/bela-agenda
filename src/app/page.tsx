@@ -1,44 +1,42 @@
 import { AppShell } from "@/components/app-shell";
 import { requireAuthContext } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { endOfDay, endOfWeek, format, startOfDay, startOfWeek } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { ArrowDownRight, ArrowUpRight, CalendarCheck, ChevronRight, CircleDollarSign, Clock3, MessageCircle, Plus, Sparkles, UsersRound } from "lucide-react";
+import { addDateDays, atBusinessTime, businessDate, businessTime, bookingSettingsSchema } from "@/lib/booking-policy";
+import { statusLabels } from "@/lib/booking-service";
+import { ArrowUpRight, CalendarCheck, Check, ChevronRight, CircleDollarSign, Clock3, Link2, Plus, Settings2, Sparkles, UsersRound } from "lucide-react";
 import Link from "next/link";
 
 const money = (cents: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(cents / 100);
-
 export const dynamic = "force-dynamic";
 
 export default async function Dashboard() {
   const context = await requireAuthContext();
   const { business } = context;
   const now = new Date();
-  const todayStart = startOfDay(now);
-  const todayEnd = endOfDay(now);
-  const weekStart = startOfWeek(now, { weekStartsOn: 1 });
-  const weekEnd = endOfWeek(now, { weekStartsOn: 1 });
-  const [today, week, clients, upcoming] = await Promise.all([
-    prisma.appointment.findMany({ where: { businessId: business.id, startsAt: { gte: todayStart, lte: todayEnd }, status: { not: "CANCELLED" } }, include: { service: true } }),
-    prisma.appointment.findMany({ where: { businessId: business.id, startsAt: { gte: weekStart, lte: weekEnd }, status: { not: "CANCELLED" } }, include: { service: true } }),
+  const day = businessDate(now);
+  const weekday = new Date(`${day}T12:00:00Z`).getUTCDay();
+  const monday = addDateDays(day, -(weekday === 0 ? 6 : weekday - 1));
+  const [today, week, clients, upcoming, pending] = await Promise.all([
+    prisma.appointment.count({ where: { businessId: business.id, startsAt: { gte: atBusinessTime(day), lt: atBusinessTime(addDateDays(day, 1)) }, status: { notIn: ["CANCELLED", "NO_SHOW"] } } }),
+    prisma.appointment.findMany({ where: { businessId: business.id, startsAt: { gte: atBusinessTime(monday), lt: atBusinessTime(addDateDays(monday, 7)) }, status: { notIn: ["CANCELLED", "NO_SHOW"] } }, include: { service: true } }),
     prisma.client.count({ where: { businessId: business.id } }),
-    prisma.appointment.findMany({ where: { businessId: business.id, startsAt: { gte: now }, status: { not: "CANCELLED" } }, include: { client: true, service: true, professional: true }, orderBy: { startsAt: "asc" }, take: 4 }),
+    prisma.appointment.findMany({ where: { businessId: business.id, startsAt: { gte: now }, status: { in: ["PENDING", "CONFIRMED"] } }, include: { client: true, service: true, professional: true }, orderBy: { startsAt: "asc" }, take: 5 }),
+    prisma.appointment.count({ where: { businessId: business.id, status: "PENDING" } }),
   ]);
-  const weekRevenue = week.reduce((total, item) => total + item.service.priceCents, 0);
+  const configured = bookingSettingsSchema.safeParse(business.bookingSettings).success;
+  const dateLabel = new Intl.DateTimeFormat("pt-BR", { timeZone: "America/Sao_Paulo", weekday: "long", day: "numeric", month: "long" }).format(now);
   return <AppShell context={context}>
-    <div className="page-heading"><div><span className="eyebrow">SEXTA-FEIRA, {format(now, "dd 'DE' MMMM", { locale: ptBR }).toUpperCase()}</span><h1>Bom dia, {context.user.name.split(" ")[0]} <span>✦</span></h1><p>Aqui está o pulso do seu negócio hoje.</p></div><Link href="/agenda?novo=1" className="button primary"><Plus size={18} /> Novo agendamento</Link></div>
+    <div className="page-heading"><div><span className="eyebrow">{dateLabel}</span><h1>Olá, {context.user.name.split(" ")[0]}. <span>✦</span></h1><p>Mais organização para você. Mais cuidado para seus clientes.</p></div><Link href="/agenda?novo=1" className="button primary"><Plus size={18}/> Novo agendamento</Link></div>
+    <section className="welcome-banner"><div><span className="eyebrow">SEU NEGÓCIO, NO SEU RITMO</span><h2>O próximo bom atendimento<br/>começa com uma agenda leve.</h2><p>{business.name} · {business.city}</p><Link href="/agenda">Organizar minha semana <ArrowUpRight size={17}/></Link></div><div className="banner-art" aria-hidden="true"><div className="art-circle"/><Sparkles className="art-spark"/><div className="art-card"><span><CalendarCheck size={20}/> Bela Agenda</span><strong>Tempo para cuidar.</strong><div className="art-line"/><div className="art-line short"/><i><Check size={18}/></i></div></div></section>
     <section className="metric-grid">
-      <article className="metric-card"><div className="metric-icon clay"><CalendarCheck /></div><div className="metric-value">{today.length}</div><div className="metric-label">Agendamentos hoje</div><span className="trend positive"><ArrowUpRight size={15} /> agenda do dia</span></article>
-      <article className="metric-card"><div className="metric-icon green"><CircleDollarSign /></div><div className="metric-value">{money(weekRevenue)}</div><div className="metric-label">Previsto nesta semana</div><span className="trend positive"><ArrowUpRight size={15} /> {week.length} atendimentos</span></article>
-      <article className="metric-card"><div className="metric-icon purple"><UsersRound /></div><div className="metric-value">{clients}</div><div className="metric-label">Clientes cadastrados</div><span className="trend neutral"><ArrowDownRight size={15} /> base inicial</span></article>
-      <article className="metric-card assistant-metric"><div className="metric-icon dark"><MessageCircle /></div><div className="metric-value">68%</div><div className="metric-label">Atendidos automaticamente</div><span className="trend positive"><Sparkles size={14} /> secretária ativa</span></article>
+      <article className="metric-card"><div className="metric-icon clay"><CalendarCheck/></div><div className="metric-value">{today}</div><div className="metric-label">Agendamentos hoje</div><span className="trend neutral">Sua programação do dia</span></article>
+      <article className="metric-card"><div className="metric-icon green"><CircleDollarSign/></div><div className="metric-value">{money(week.reduce((total, item) => total + item.service.priceCents, 0))}</div><div className="metric-label">Valor previsto na semana</div><span className="trend neutral">{week.length} atendimentos · valores do catálogo</span></article>
+      <article className="metric-card"><div className="metric-icon purple"><UsersRound/></div><div className="metric-value">{clients}</div><div className="metric-label">Clientes cadastrados</div><span className="trend neutral">Relacionamentos que crescem</span></article>
+      <article className="metric-card"><div className="metric-icon clay"><Clock3/></div><div className="metric-value">{pending}</div><div className="metric-label">Aguardando confirmação</div><Link className="trend" href="/agenda">Revisar na agenda <ArrowUpRight size={14}/></Link></article>
     </section>
-    <div className="dashboard-grid">
-      <section className="panel agenda-preview"><div className="panel-head"><div><h2>Próximos atendimentos</h2><p>Sua agenda a partir de agora</p></div><Link href="/agenda">Ver agenda <ChevronRight size={16} /></Link></div>
-        <div className="appointment-list">{upcoming.length ? upcoming.map((item) => <div className="appointment-row" key={item.id}><div className="appointment-time"><strong>{format(item.startsAt, "HH:mm")}</strong><span>{format(item.startsAt, "dd MMM", { locale: ptBR })}</span></div><i style={{ background: item.professional.color }} /><div className="appointment-main"><strong>{item.client.name}</strong><span>{item.service.name} · {item.professional.name}</span></div><span className={`status ${item.status.toLowerCase()}`}>{item.status === "CONFIRMED" ? "Confirmado" : "Pendente"}</span><button className="icon-button"><ChevronRight size={18} /></button></div>) : <div className="empty">Nenhum próximo atendimento.</div>}</div>
-      </section>
-      <aside className="panel assistant-card"><div className="assistant-orb"><Sparkles size={23} /></div><span className="eyebrow">SECRETÁRIA VIRTUAL</span><h2>A Bela está trabalhando</h2><p>Respondendo seus clientes e mantendo sua agenda organizada.</p><div className="assistant-stat"><MessageCircle size={18} /><div><strong>12 conversas</strong><span>atendidas hoje</span></div></div><div className="assistant-stat"><Clock3 size={18} /><div><strong>2h 18min</strong><span>economizados</span></div></div><button className="button soft">Ver conversas</button></aside>
+    <div className="dashboard-grid"><section className="panel agenda-preview"><div className="panel-head"><div><h2>Os próximos cuidados</h2><p>Atendimentos a partir de agora · Brasília</p></div><Link href="/agenda">Ver agenda <ChevronRight size={16}/></Link></div><div className="appointment-list">{upcoming.length ? upcoming.map((item) => <Link href="/agenda" className="appointment-row" key={item.id}><div className="appointment-time"><strong>{businessTime(item.startsAt)}</strong><span>{new Intl.DateTimeFormat("pt-BR", { timeZone: "America/Sao_Paulo", day: "2-digit", month: "short" }).format(item.startsAt)}</span></div><i style={{ background: item.professional.color }}/><div className="appointment-main"><strong>{item.client.name}</strong><span>{item.service.name} · {item.professional.name}</span></div><span className={`status ${item.status.toLowerCase()}`}>{statusLabels[item.status]}</span><ChevronRight size={16}/></Link>) : <div className="empty dashboard-empty"><CalendarCheck size={32}/><h3>Espaço para novos encontros</h3><p>Seus próximos agendamentos aparecerão aqui.</p><Link className="button outline" href="/agenda?novo=1">Agendar primeiro atendimento</Link></div>}</div></section>
+      <aside className="panel activation-card"><span className="eyebrow">PRÓXIMOS PASSOS</span><h2>Prepare sua agenda</h2><p>Uma experiência simples, desde o primeiro contato.</p><div className="activation-step"><span className="done"><Check size={15}/></span><div><strong>Seu espaço está criado</strong><small>Estabelecimento, serviços e equipe</small></div></div><Link className="activation-step" href="/configuracoes"><span className={configured ? "done" : ""}>{configured ? <Check size={15}/> : "2"}</span><div><strong>{configured ? "Horários configurados" : "Defina seus horários"}</strong><small>Jornada e regras de reserva</small></div><ChevronRight size={15}/></Link><Link className="activation-step" href={`/agendar/${business.slug}`} target="_blank"><span><Link2 size={15}/></span><div><strong>Conheça sua página pública</strong><small>Teste antes de compartilhar</small></div><ChevronRight size={15}/></Link><div className="integration-label">WhatsApp automático: ainda não integrado</div><Link href="/configuracoes" className="button outline"><Settings2 size={16}/> Ajustar estabelecimento</Link></aside>
     </div>
-    <section className="panel quick-panel"><div><span className="eyebrow">ATALHOS</span><h2>O que você quer fazer?</h2></div><div className="quick-actions"><Link href="/agenda?novo=1"><CalendarCheck /><span><strong>Novo horário</strong><small>Agende um cliente</small></span></Link><Link href="/clientes"><UsersRound /><span><strong>Novo cliente</strong><small>Adicione à sua base</small></span></Link><Link href={`/agendar/${business.slug}`} target="_blank"><MessageCircle /><span><strong>Testar página pública</strong><small>Veja como o cliente</small></span></Link></div></section>
+    <section className="panel quick-panel"><div><span className="eyebrow">MENOS CLIQUES, MAIS TEMPO</span><h2>Seu dia a dia, mais fácil.</h2></div><div className="quick-actions"><Link href="/agenda?novo=1"><CalendarCheck/><span><strong>Reservar um horário</strong><small>Organize o próximo cuidado</small></span></Link><Link href="/clientes"><UsersRound/><span><strong>Conhecer seus clientes</strong><small>Contatos sempre por perto</small></span></Link><Link href="/catalogo"><Sparkles/><span><strong>Atualizar serviços</strong><small>Seu catálogo de cuidados</small></span></Link></div></section>
   </AppShell>;
 }

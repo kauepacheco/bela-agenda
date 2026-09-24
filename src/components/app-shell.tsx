@@ -1,4 +1,5 @@
-import { Bell, ChevronDown, HelpCircle, Search } from "lucide-react";
+import { ExternalLink, Sparkles } from "lucide-react";
+import Link from "next/link";
 import { Sidebar } from "./sidebar";
 
 type ShellContext = {
@@ -12,5 +13,5 @@ function initials(value: string) {
 }
 
 export function AppShell({ children, context }: { children: React.ReactNode; context: ShellContext }) {
-  return <div className="app-shell"><Sidebar business={context.business} role={context.role} /><main className="main"><header className="topbar"><div className="search"><Search size={18} /><input aria-label="Buscar" placeholder="Buscar cliente, horário..." /><kbd>⌘ K</kbd></div><div className="top-actions"><button aria-label="Ajuda"><HelpCircle size={19} /></button><button className="notification" aria-label="Notificações"><Bell size={19} /><i /></button><span className="divider" /><span className="user-avatar">{initials(context.user.name)}</span><div className="user-name"><strong>{context.user.name}</strong><small>{context.role === "OWNER" ? "Proprietário" : "Funcionário"}</small></div><ChevronDown size={16} /></div></header><div className="content">{children}</div></main></div>;
+  return <div className="app-shell"><a className="skip-link" href="#main-content">Pular para o conteúdo</a><Sidebar business={context.business} role={context.role}/><main className="main" id="main-content"><header className="topbar"><div className="topbar-label"><Sparkles size={16}/><span>Seu espaço de cuidado</span></div><div className="top-actions"><Link className="public-page-link" href={`/agendar/${context.business.slug}`} target="_blank">Minha página <ExternalLink size={14}/></Link><span className="divider"/><span className="user-avatar">{initials(context.user.name)}</span><div className="user-name"><strong>{context.user.name}</strong><small>{context.role === "OWNER" ? "Proprietário" : "Funcionário"}</small></div></div></header><div className="content">{children}</div></main></div>;
 }

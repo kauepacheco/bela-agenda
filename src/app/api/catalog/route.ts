@@ -9,7 +9,7 @@ const schema = z.discriminatedUnion("type", [
 ]);
 
 export async function POST(request: Request) {
-  const parsed = schema.safeParse(await request.json());
+  const parsed = schema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Revise os dados informados." }, { status: 400 });
   const business = (await getCurrentContext())?.business;
   if (!business) return NextResponse.json({ error: "Não autorizado." }, { status: 401 });

@@ -1,19 +1,13 @@
 import { PrismaClient } from "@prisma/client";
 import { addDays, setHours, setMinutes, startOfDay } from "date-fns";
 import { hashPassword } from "../src/lib/password";
+import { defaultBookingSettings } from "../src/lib/booking-policy";
 
 const prisma = new PrismaClient();
 
 async function main() {
-  await prisma.session.deleteMany();
-  await prisma.membership.deleteMany();
-  await prisma.appointment.deleteMany();
-  await prisma.professionalService.deleteMany();
-  await prisma.client.deleteMany();
-  await prisma.service.deleteMany();
-  await prisma.professional.deleteMany();
-  await prisma.business.deleteMany();
-  await prisma.user.deleteMany();
+  if (process.env.NODE_ENV === "production") throw new Error("O seed demonstrativo não pode ser executado em produção.");
+  if (await prisma.business.count() || await prisma.user.count()) throw new Error("O seed exige um banco vazio. Use um banco dedicado à demonstração.");
 
   const business = await prisma.business.create({
     data: {
@@ -22,6 +16,7 @@ async function main() {
       phone: "(47) 99999-1234",
       address: "Rua Samuel Heusi, 120",
       onboardingCompletedAt: new Date(),
+      bookingSettings: defaultBookingSettings,
     },
   });
 

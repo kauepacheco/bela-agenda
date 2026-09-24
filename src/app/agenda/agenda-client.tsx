@@ -1,50 +1,66 @@
 "use client";
 
-import { addDays, addWeeks, endOfWeek, format, isSameDay, isToday, startOfWeek } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { ChevronLeft, ChevronRight, Filter, Plus, X } from "lucide-react";
-import { useMemo, useState } from "react";
+import { ChevronLeft, ChevronRight, Plus, CalendarDays, List } from "lucide-react";
+import { useRef, useState } from "react";
+import { addDateDays, atBusinessTime, businessDate, businessTime } from "@/lib/booking-policy";
+import { Dialog } from "@/components/dialog";
 
 type Person = { id: string; name: string; role: string; color: string };
-type Service = { id: string; name: string; durationMin: number; priceCents: number };
+type Service = { id: string; name: string; durationMin: number; priceCents: number; professionals: { professionalId: string }[] };
 type Client = { id: string; name: string; phone: string };
 type Appointment = { id: string; startsAt: string; endsAt: string; status: string; client: Client; professional: Person; service: Service };
-
-const hours = Array.from({ length: 11 }, (_, i) => i + 8);
-const money = (cents: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(cents / 100);
+const labels: Record<string, string> = { PENDING: "Pendente", CONFIRMED: "Confirmado", COMPLETED: "Concluído", CANCELLED: "Cancelado", NO_SHOW: "Não compareceu" };
+const monday = () => { const day = businessDate(); const weekday = new Date(`${day}T12:00:00Z`).getUTCDay(); return addDateDays(day, -(weekday === 0 ? 6 : weekday - 1)); };
+const dateLabel = (day: string, options: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat("pt-BR", { ...options, timeZone: "UTC" }).format(new Date(`${day}T12:00:00Z`));
 
 export function AgendaClient({ initialAppointments, professionals, services, clients, initialOpen = false }: { initialAppointments: Appointment[]; professionals: Person[]; services: Service[]; clients: Client[]; initialOpen?: boolean }) {
-  const [week, setWeek] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
+  const [week, setWeek] = useState(monday);
   const [appointments, setAppointments] = useState(initialAppointments);
   const [modal, setModal] = useState(initialOpen);
+  const [selected, setSelected] = useState<Appointment | null>(null);
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const days = useMemo(() => Array.from({ length: 6 }, (_, i) => addDays(week, i)), [week]);
-  async function loadWeek(next: Date) {
-    setWeek(next); setLoading(true);
-    const res = await fetch(`/api/appointments?start=${next.toISOString()}&end=${endOfWeek(next, { weekStartsOn: 1 }).toISOString()}`);
-    setAppointments(await res.json()); setLoading(false);
+  const [professional, setProfessional] = useState("");
+  const [status, setStatus] = useState("");
+  const [serviceId, setServiceId] = useState("");
+  const [view, setView] = useState<"week" | "list">("week");
+  const sequence = useRef(0);
+  const days = Array.from({ length: 7 }, (_, index) => addDateDays(week, index));
+  const filtered = appointments.filter((item) => (!professional || item.professional.id === professional) && (!status || item.status === status));
+  async function loadWeek(next: string) {
+    const request = ++sequence.current; setLoading(true); setError("");
+    try {
+      const query = new URLSearchParams({ start: atBusinessTime(next).toISOString(), end: new Date(atBusinessTime(addDateDays(next, 7)).getTime() - 1).toISOString() });
+      const response = await fetch(`/api/appointments?${query}`);
+      const data = await response.json(); if (!response.ok) throw new Error(data.error);
+      if (request === sequence.current) { setWeek(next); setAppointments(data); }
+    } catch { if (request === sequence.current) setError("Não foi possível carregar a agenda. Tente novamente."); }
+    finally { if (request === sequence.current) setLoading(false); }
   }
-  async function submit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault(); setError(""); setLoading(true);
-    const fd = new FormData(event.currentTarget);
-    const date = String(fd.get("date")); const time = String(fd.get("time"));
-    const res = await fetch("/api/appointments", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ clientId: fd.get("clientId"), professionalId: fd.get("professionalId"), serviceId: fd.get("serviceId"), startsAt: new Date(`${date}T${time}:00`), source: "DASHBOARD" }) });
-    const payload = await res.json(); setLoading(false);
-    if (!res.ok) return setError(payload.error);
-    setAppointments((current) => [...current, payload]); setModal(false);
+  async function save(body: object, method: "POST" | "PATCH") {
+    setSaving(true); setError("");
+    try {
+      const response = await fetch("/api/appointments", { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      const data = await response.json(); if (!response.ok) { setError(data.error); return; }
+      setAppointments((current) => [...current.filter((item) => item.id !== data.id), data].filter((item) => businessDate(new Date(item.startsAt)) >= week && businessDate(new Date(item.startsAt)) < addDateDays(week, 7)).sort((a, b) => a.startsAt.localeCompare(b.startsAt)));
+      setModal(false); setSelected(null);
+    } catch { setError("Não foi possível confirmar a alteração. Atualize a agenda antes de tentar novamente."); }
+    finally { setSaving(false); }
   }
+  function submit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault(); const data = new FormData(event.currentTarget);
+    void save({ clientId: data.get("clientId"), serviceId: data.get("serviceId"), professionalId: data.get("professionalId"), startsAt: atBusinessTime(String(data.get("date")), String(data.get("time"))).toISOString() }, "POST");
+  }
+  const openAppointment = (item: Appointment) => { setError(""); setSelected(item); };
   return <>
-    <div className="page-heading agenda-heading"><div><span className="eyebrow">ORGANIZAÇÃO DO DIA</span><h1>Agenda</h1><p>Visualize e organize os horários da sua equipe.</p></div><div className="heading-actions"><button className="button outline"><Filter size={17} /> Filtrar</button><button className="button primary" onClick={() => setModal(true)}><Plus size={18} /> Novo agendamento</button></div></div>
-    <section className={`calendar panel ${loading ? "loading" : ""}`}>
-      <div className="calendar-toolbar"><div className="calendar-nav"><button onClick={() => loadWeek(addWeeks(week, -1))}><ChevronLeft /></button><button onClick={() => loadWeek(addWeeks(week, 1))}><ChevronRight /></button><button className="today-btn" onClick={() => loadWeek(startOfWeek(new Date(), { weekStartsOn: 1 }))}>Hoje</button></div><h2>{format(week, "MMMM 'de' yyyy", { locale: ptBR })}</h2><div className="team-key">{professionals.map((p) => <span key={p.id}><i style={{ background: p.color }} />{p.name.split(" ")[0]}</span>)}</div></div>
-      <div className="calendar-grid"><div className="calendar-corner" />{days.map((day) => <div key={day.toISOString()} className={`calendar-day-head ${isToday(day) ? "today" : ""}`}><span>{format(day, "EEE", { locale: ptBR })}</span><strong>{format(day, "dd")}</strong></div>)}
-        {hours.flatMap((hour) => [<div className="calendar-hour" key={`h-${hour}`}>{String(hour).padStart(2,"0")}:00</div>, ...days.map((day) => {
-          const items = appointments.filter((a) => isSameDay(new Date(a.startsAt), day) && new Date(a.startsAt).getHours() === hour && a.status !== "CANCELLED");
-          return <div className={`calendar-cell ${isToday(day) ? "today-col" : ""}`} key={`${day.toISOString()}-${hour}`}>{items.map((a) => { const start = new Date(a.startsAt); return <div className="calendar-event" key={a.id} style={{ borderLeftColor: a.professional.color, background: `${a.professional.color}14` }}><strong>{format(start,"HH:mm")} · {a.client.name}</strong><span>{a.service.name}</span><small>{a.professional.name.split(" ")[0]}</small></div>; })}</div>;
-        })])}
-      </div>
+    <div className="page-heading"><div><span className="eyebrow">ESPAÇO PARA CADA CUIDADO</span><h1>Sua agenda, em ordem.</h1><p>Atendimentos da equipe · Horário de Brasília</p></div><button className="button primary" onClick={() => { setModal(true); setError(""); }}><Plus size={18}/> Novo agendamento</button></div>
+    <div className="agenda-filters"><div className="view-switch"><button aria-pressed={view === "week"} onClick={() => setView("week")}><CalendarDays size={16}/> Semana</button><button aria-pressed={view === "list"} onClick={() => setView("list")}><List size={16}/> Lista</button></div><select aria-label="Filtrar por profissional" value={professional} onChange={(event) => setProfessional(event.target.value)}><option value="">Toda a equipe</option>{professionals.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select><select aria-label="Filtrar por status" value={status} onChange={(event) => setStatus(event.target.value)}><option value="">Todos os status</option>{Object.entries(labels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select><span>{filtered.length} atendimentos</span></div>
+    {error && !modal && !selected && <p role="alert" className="form-error">{error}</p>}
+    <section className={`calendar panel ${loading ? "loading" : ""}`} aria-busy={loading}><div className="calendar-toolbar"><div className="calendar-nav"><button aria-label="Semana anterior" disabled={loading} onClick={() => loadWeek(addDateDays(week, -7))}><ChevronLeft/></button><button aria-label="Próxima semana" disabled={loading} onClick={() => loadWeek(addDateDays(week, 7))}><ChevronRight/></button><button className="today-btn" disabled={loading} onClick={() => loadWeek(monday())}>Hoje</button></div><h2>{dateLabel(week, { day: "2-digit", month: "short" })} — {dateLabel(days[6], { day: "2-digit", month: "short", year: "numeric" })}</h2><span className="calendar-timezone">Brasília (BRT)</span></div>
+      {view === "week" ? <div className="week-board">{days.map((day) => <section className={`week-column ${day === businessDate() ? "is-today" : ""}`} key={day}><header><span>{dateLabel(day, { weekday: "short" })}</span><strong>{day.slice(-2)}</strong></header><div>{filtered.filter((item) => businessDate(new Date(item.startsAt)) === day).map((item) => <button className="appointment-tile" key={item.id} style={{ borderLeftColor: item.professional.color }} onClick={() => openAppointment(item)}><time>{businessTime(new Date(item.startsAt))} — {businessTime(new Date(item.endsAt))}</time><strong>{item.client.name}</strong><span>{item.service.name}</span><small>{item.professional.name}</small><span className={`status ${item.status.toLowerCase()}`}>{labels[item.status]}</span></button>)}{!filtered.some((item) => businessDate(new Date(item.startsAt)) === day) && <p className="day-empty">Sem atendimentos</p>}</div></section>)}</div> : <div className="agenda-list">{filtered.length === 0 && <div className="empty">Nenhum atendimento neste período com os filtros selecionados.</div>}{filtered.map((item) => <button key={item.id} className="agenda-list-item" onClick={() => openAppointment(item)}><time>{dateLabel(businessDate(new Date(item.startsAt)), { day: "2-digit", month: "short" })}<strong>{businessTime(new Date(item.startsAt))}</strong></time><div><strong>{item.client.name}</strong><span>{item.service.name} · {item.professional.name}</span></div><span className={`status ${item.status.toLowerCase()}`}>{labels[item.status]}</span><ChevronRight size={17}/></button>)}</div>}
     </section>
-    {modal && <div className="modal-backdrop" onMouseDown={(e) => e.currentTarget === e.target && setModal(false)}><div className="modal"><div className="modal-head"><div><span className="eyebrow">NOVO HORÁRIO</span><h2>Agendar atendimento</h2></div><button onClick={() => setModal(false)}><X /></button></div><form onSubmit={submit} className="form-grid"><label className="full">Cliente<select name="clientId" required defaultValue=""><option value="" disabled>Selecione um cliente</option>{clients.map((c) => <option key={c.id} value={c.id}>{c.name} · {c.phone}</option>)}</select></label><label>Serviço<select name="serviceId" required defaultValue=""><option value="" disabled>Selecione</option>{services.map((s) => <option key={s.id} value={s.id}>{s.name} · {money(s.priceCents)}</option>)}</select></label><label>Profissional<select name="professionalId" required defaultValue=""><option value="" disabled>Selecione</option>{professionals.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</select></label><label>Data<input name="date" type="date" required defaultValue={format(new Date(), "yyyy-MM-dd")} /></label><label>Horário<input name="time" type="time" required defaultValue="09:00" /></label>{error && <p className="form-error full">{error}</p>}<div className="modal-actions full"><button type="button" className="button outline" onClick={() => setModal(false)}>Cancelar</button><button className="button primary" disabled={loading}>{loading ? "Salvando..." : "Confirmar horário"}</button></div></form></div></div>}
+    {modal && <Dialog title="Agendar atendimento" onClose={() => { if (!saving) setModal(false); }}><form className="form-grid" onSubmit={submit}><label className="full">Cliente<select name="clientId" required defaultValue=""><option value="" disabled>Selecione um cliente</option>{clients.map((item) => <option key={item.id} value={item.id}>{item.name} · {item.phone}</option>)}</select></label><label>Serviço<select name="serviceId" required value={serviceId} onChange={(event) => setServiceId(event.target.value)}><option value="" disabled>Selecione</option>{services.map((item) => <option key={item.id} value={item.id}>{item.name} · {item.durationMin} min</option>)}</select></label><label>Profissional<select key={serviceId} name="professionalId" required defaultValue=""><option value="" disabled>Selecione</option>{professionals.filter((item) => services.find((service) => service.id === serviceId)?.professionals.some((link) => link.professionalId === item.id)).map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label><label>Data<input name="date" type="date" min={businessDate()} required defaultValue={businessDate()}/></label><label>Horário de Brasília<input name="time" type="time" required defaultValue="09:00"/></label>{!clients.length && <p className="settings-note full">Cadastre um cliente na página Clientes antes de agendar.</p>}{error && <p role="alert" className="form-error full">{error}</p>}<div className="modal-actions full"><button type="button" className="button outline" disabled={saving} onClick={() => setModal(false)}>Voltar</button><button className="button primary" disabled={saving || !clients.length}>{saving ? "Salvando..." : "Confirmar horário"}</button></div></form></Dialog>}
+    {selected && <Dialog title={selected.client.name} onClose={() => { if (!saving) setSelected(null); }}><div className="appointment-detail"><span className={`status ${selected.status.toLowerCase()}`}>{labels[selected.status]}</span><h3>{selected.service.name}</h3><p>{selected.professional.name} · {dateLabel(businessDate(new Date(selected.startsAt)), { dateStyle: "long" })} · {businessTime(new Date(selected.startsAt))}</p></div>{!["CANCELLED", "COMPLETED", "NO_SHOW"].includes(selected.status) && <><div className="status-actions">{selected.status === "PENDING" && <button disabled={saving} className="button primary" onClick={() => save({ id: selected.id, status: "CONFIRMED" }, "PATCH")}>Confirmar</button>}{new Date(selected.startsAt) <= new Date() && <><button disabled={saving} className="button outline" onClick={() => save({ id: selected.id, status: "COMPLETED" }, "PATCH")}>Concluir</button><button disabled={saving} className="button outline" onClick={() => save({ id: selected.id, status: "NO_SHOW" }, "PATCH")}>Marcar falta</button></>}<button disabled={saving} className="button danger" onClick={() => { if (window.confirm("Cancelar este atendimento? O horário ficará disponível para novas reservas.")) void save({ id: selected.id, status: "CANCELLED" }, "PATCH"); }}>Cancelar atendimento</button></div><form className="form-grid reschedule-form" onSubmit={(event) => { event.preventDefault(); const data = new FormData(event.currentTarget); void save({ id: selected.id, startsAt: atBusinessTime(String(data.get("date")), String(data.get("time"))).toISOString() }, "PATCH"); }}><h3 className="full">Reagendar</h3><label>Nova data<input type="date" name="date" min={businessDate()} required defaultValue={businessDate(new Date(selected.startsAt))}/></label><label>Horário de Brasília<input type="time" name="time" required defaultValue={businessTime(new Date(selected.startsAt))}/></label><button disabled={saving} className="button outline full">Salvar novo horário</button></form></>}{error && <p role="alert" className="form-error">{error}</p>}</Dialog>}
   </>;
 }

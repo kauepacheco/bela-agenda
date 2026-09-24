@@ -1,6 +1,8 @@
 # Roadmap do Bela Agenda
 
-Última atualização: 18 de setembro de 2026.
+Última atualização: 24 de setembro de 2026.
+
+Veja também [`LANCAMENTO.md`](LANCAMENTO.md) para a auditoria atual, evidências e prioridades comerciais. Os checkboxes de M0 abaixo registram o marco histórico, não uma certificação de produção.
 
 Este documento é a referência de continuidade do produto. Ao concluir ou alterar uma etapa, atualize os checkboxes, a seção **Próxima tarefa** e o histórico de decisões.
 
@@ -41,7 +43,7 @@ Limitações atuais:
 
 - O onboarding ainda não configura horários de funcionamento.
 - A implantação de homologação com PostgreSQL gerenciado ainda não foi criada.
-- Horários de trabalho e folgas ainda não são configuráveis.
+- O horário comum ao estabelecimento é configurável; jornadas individuais, intervalos de almoço e folgas ainda não são.
 - O WhatsApp ainda não está integrado.
 - Não há cobrança de assinaturas.
 
@@ -73,9 +75,10 @@ Objetivo: permitir que um salão crie uma conta e tenha um ambiente isolado e co
 - [x] Criar assistente de configuração inicial.
 - [x] Coletar nome, endereço, cidade e WhatsApp do estabelecimento.
 - [x] Cadastrar profissionais e serviços durante o onboarding.
-- [ ] Configurar horários de funcionamento.
+- [x] Configurar horários de funcionamento na página Configurações (após o onboarding).
+- [ ] Incorporar a configuração de horários ao assistente de onboarding.
 - [x] Gerar um slug público único.
-- [ ] Exibir checklist de ativação no painel.
+- [x] Exibir checklist de ativação no painel, com estado real da configuração de horários.
 
 ### Critérios de conclusão do M1
 
@@ -91,15 +94,18 @@ Objetivo: tornar a agenda confiável para uso diário de um estabelecimento real
 
 - [ ] Criar jornada de trabalho por profissional e dia da semana.
 - [ ] Permitir intervalos, folgas, férias e bloqueios manuais.
-- [ ] Configurar antecedência mínima e máxima para reservas.
-- [ ] Configurar intervalo entre atendimentos.
-- [ ] Considerar a duração completa do serviço ao exibir horários livres.
-- [ ] Permitir cancelar e reagendar pelo painel.
-- [ ] Permitir confirmar, concluir e marcar falta.
+- [x] Configurar antecedência mínima e máxima para reservas.
+- [x] Configurar intervalo entre atendimentos.
+- [x] Considerar a duração completa do serviço ao exibir horários livres.
+- [x] Permitir cancelar e reagendar pelo painel.
+- [x] Permitir confirmar, concluir e marcar falta.
 - [ ] Criar visualizações diária e semanal.
-- [ ] Adicionar filtros por profissional e status.
-- [ ] Registrar histórico de alterações do agendamento.
-- [ ] Tratar corretamente o fuso horário `America/Sao_Paulo`.
+- [x] Adicionar filtros por profissional e status.
+- [x] Registrar histórico de alterações do agendamento no banco.
+- [ ] Exibir o histórico de alterações no detalhe do atendimento.
+- [x] Tratar corretamente o fuso horário `America/Sao_Paulo` na disponibilidade, reservas, agenda e painel.
+- [x] Proteger criação e reagendamento contra concorrência entre instâncias do aplicativo.
+- [x] Adicionar visualização em lista e incluir domingo na semana.
 
 ### Critérios de conclusão do M2
 
@@ -174,12 +180,18 @@ Estes itens só devem entrar após validação do núcleo de agenda e WhatsApp:
 
 ## Próxima tarefa
 
-Configurar horários de funcionamento durante o onboarding.
+Implementar jornada individual por profissional com múltiplos intervalos por dia e bloqueios datados (folgas/férias), reutilizando a validação compartilhada de disponibilidade. Cobrir conflito com pausa/bloqueio, alteração simultânea e isolamento entre empresas. Depois incorporar os horários ao onboarding. As demais frentes de lançamento estão priorizadas em `LANCAMENTO.md`.
 
 ## Decisões registradas
 
 | Data | Decisão | Motivo |
 | --- | --- | --- |
+| 2026-09-24 | Centralizar criação, alteração e disponibilidade em `booking-service`; serializar mutações pela linha de `Business` com `SELECT ... FOR UPDATE` em transações PostgreSQL. | Eliminar a corrida entre consultar conflito e gravar; sincronizar inclusive alterações de configuração entre instâncias. Todos os novos escritores (WhatsApp, importações etc.) devem usar esse serviço. |
+| 2026-09-24 | Exigir configuração explícita de horários após a migração, sem presumir que o padrão sugerido é a jornada real. | Não abrir reservas em horários não aprovados pelo estabelecimento; preservar atendimentos existentes. |
+| 2026-09-24 | Começar com jornada comum à equipe em Brasília, regras de antecedência e intervalo; deixar jornada individual e pausas como próximo incremento. | Entregar uma base verificável sem representar limitações como recursos prontos. |
+| 2026-09-24 | Manter confirmação humana na página pública e remover indicadores de WhatsApp e assinatura fictícios. | A interface deve mostrar somente integrações e resultados reais. |
+| 2026-09-24 | Não reabrir atendimentos cancelados, concluídos ou com falta; registrar eventos de criação, status e reagendamento na mesma transação. | Evitar reativação de reservas em horários já ocupados e preservar rastreabilidade. |
+| 2026-09-24 | O seed exige banco vazio e recusa produção. | Impedir que uma carga demonstrativa apague dados de clientes. |
 | 2026-09-18 | Focar inicialmente no segmento de beleza. | Grande quantidade de estabelecimentos, uso intenso de agenda e menor complexidade que saúde. |
 | 2026-09-18 | Atender estabelecimentos com 2 a 10 profissionais. | Melhor equilíbrio entre dor operacional e capacidade de pagamento. |
 | 2026-09-18 | Concentrar a operação comercial inicial em Itajaí. | Proximidade para suporte e densidade suficiente de clientes potenciais. |
