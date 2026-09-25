@@ -19,6 +19,7 @@ import {
 } from "@/lib/auth-service";
 import { prisma } from "@/lib/prisma";
 import { verifyPassword } from "@/lib/password";
+import { defaultBookingSettings } from "@/lib/booking-policy";
 import { completeBusinessOnboarding } from "@/lib/onboarding-service";
 import {
   acceptMemberInvitation,
@@ -317,6 +318,7 @@ describe("onboarding do estabelecimento", () => {
 
     const completedAt = new Date("2026-09-18T15:00:00.000Z");
     const business = await completeBusinessOnboarding({
+      bookingSettings: defaultBookingSettings,
       actorMembershipId: owner.id,
       name: "Salão Renovado",
       address: "Rua das Flores, 123",
@@ -332,6 +334,7 @@ describe("onboarding do estabelecimento", () => {
       city: "Itajaí",
       phone: "47999991234",
       onboardingCompletedAt: completedAt,
+      bookingSettings: defaultBookingSettings,
     });
     await expect(prisma.professional.findMany({
       where: { businessId: owner.businessId },
@@ -360,6 +363,7 @@ describe("onboarding do estabelecimento", () => {
     });
 
     await expect(completeBusinessOnboarding({
+      bookingSettings: defaultBookingSettings,
       actorMembershipId: employee.id,
       name: "Nome indevido",
       address: "Rua indevida, 1",
@@ -377,6 +381,7 @@ describe("onboarding do estabelecimento", () => {
     const [first, second] = await Promise.all([account(1), account(2)]);
     await Promise.all([
       completeBusinessOnboarding({
+      bookingSettings: defaultBookingSettings,
         actorMembershipId: first.id,
         name: "Salão Primeiro",
         address: "Rua Um, 10",
@@ -385,6 +390,7 @@ describe("onboarding do estabelecimento", () => {
         ...onboardingCatalog,
       }),
       completeBusinessOnboarding({
+      bookingSettings: defaultBookingSettings,
         actorMembershipId: second.id,
         name: "Salão Segundo",
         address: "Rua Dois, 20",
@@ -396,6 +402,7 @@ describe("onboarding do estabelecimento", () => {
     ]);
 
     await completeBusinessOnboarding({
+      bookingSettings: defaultBookingSettings,
       actorMembershipId: first.id,
       name: "Nome que não deve substituir",
       address: "Outra rua, 30",
@@ -446,6 +453,7 @@ async function createAppointment(
       clientId: catalog.client.id,
       professionalId: catalog.professional.id,
       serviceId: catalog.service.id,
+      serviceName: catalog.service.name, priceCents: catalog.service.priceCents, durationMin: catalog.service.durationMin,
       startsAt,
       endsAt: new Date(startsAt.getTime() + 60 * 60_000),
     },

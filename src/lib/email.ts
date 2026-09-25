@@ -42,6 +42,7 @@ async function sendEmail(input: {
 
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
+    signal: AbortSignal.timeout(10_000),
     headers: {
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
@@ -56,8 +57,7 @@ async function sendEmail(input: {
   });
 
   if (!response.ok) {
-    const detail = await response.text();
-    throw new Error(`O Resend recusou o envio (${response.status}): ${detail.slice(0, 300)}`);
+    throw new Error(`O Resend recusou o envio (${response.status}).`);
   }
 }
 

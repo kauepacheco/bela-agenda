@@ -1,5 +1,7 @@
 "use server";
 
+import { headers } from "next/headers";
+import { consumeRateLimit, limitNetwork, RateLimitError } from "@/lib/rate-limit";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -17,12 +19,13 @@ import {
 export type TeamActionState = { error?: string; success?: string } | undefined;
 
 const emailSchema = z.string().trim().toLowerCase().email("Informe um e-mail válido.");
-const passwordSchema = z.string()
+const passwordSchema = z.string().max(128)
   .min(8, "A senha deve ter ao menos 8 caracteres.")
   .regex(/[A-Za-z]/, "Inclua uma letra na senha.")
   .regex(/[0-9]/, "Inclua um número na senha.");
 
 function teamError(error: unknown) {
+  if (error instanceof RateLimitError) return error.message;
   if (!(error instanceof TeamServiceError)) return "Não foi possível concluir esta operação.";
   switch (error.code) {
     case "FORBIDDEN": return "Somente proprietários podem gerenciar membros.";
@@ -46,8 +49,11 @@ export async function inviteMemberAction(
   }).safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Revise os dados." };
 
+  if (context.role !== "OWNER") return { error: "Somente proprietários podem gerenciar membros." };
   let invitation: Awaited<ReturnType<typeof createMemberInvitation>>;
   try {
+    await consumeRateLimit("invitation:business", context.business.id, 20, 3600);
+    await consumeRateLimit("invitation:email", parsed.data.email, 5, 3600);
     invitation = await createMemberInvitation({
       actorMembershipId: context.membershipId,
       email: parsed.data.email,
@@ -69,7 +75,7 @@ export async function inviteMemberAction(
     });
   } catch (error) {
     await discardMemberInvitation(invitation.token);
-    console.error("Falha ao enviar convite de membro.", error);
+    console.error(JSON.stringify({ event: "invitation_email_failed", error: error instanceof Error ? error.name : "UnknownError" }));
     return { error: "Não foi possível enviar o convite. Tente novamente." };
   }
 
@@ -125,6 +131,8 @@ export async function acceptInvitationAction(
 
   let membership;
   try {
+    await limitNetwork("invitation-accept", await headers(), 30, 900);
+    await consumeRateLimit("invitation:token", parsed.data.token, 10, 900);
     membership = await acceptMemberInvitation(parsed.data);
   } catch (error) {
     return { error: teamError(error) };

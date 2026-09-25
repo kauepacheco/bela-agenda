@@ -18,6 +18,8 @@ import { useActionState, useRef, useState } from "react";
 import { logoutAction } from "@/app/auth-actions";
 import { completeOnboardingAction, type OnboardingState } from "@/app/onboarding-actions";
 
+import { weekdays, defaultBookingSettings } from "@/lib/booking-policy";
+
 type BusinessFields = { name: string; address: string; city: string; phone: string };
 type ProfessionalDraft = { key: string; name: string; role: string; color: string };
 type ServiceDraft = {
@@ -28,7 +30,7 @@ type ServiceDraft = {
   professionalKeys: string[];
 };
 
-const STEP_TITLES = ["Dados do estabelecimento", "Equipe profissional", "Serviços oferecidos"];
+const STEP_TITLES = ["Dados do estabelecimento", "Equipe profissional", "Serviços oferecidos", "Horários de funcionamento"];
 const COLORS = ["#D97757", "#547568", "#786283", "#B8863B", "#527A9B"];
 
 export function OnboardingForm({
@@ -42,6 +44,7 @@ export function OnboardingForm({
 }) {
   const formRef = useRef<HTMLFormElement>(null);
   const nextKey = useRef(2);
+  const [bookingSettings, setBookingSettings] = useState(defaultBookingSettings);
   const [step, setStep] = useState(0);
   const [clientError, setClientError] = useState("");
   const [professionals, setProfessionals] = useState<ProfessionalDraft[]>([
@@ -63,7 +66,7 @@ export function OnboardingForm({
       setClientError("Preencha o nome e a especialidade de todos os profissionais.");
       return;
     }
-    setStep((current) => Math.min(current + 1, 2));
+    setStep((current) => Math.min(current + 1, 3));
   }
 
   function addProfessional() {
@@ -158,21 +161,22 @@ export function OnboardingForm({
     <section className="onboarding-main">
       <div className="onboarding-top">
         <div><span>CONFIGURAÇÃO INICIAL</span><strong>{STEP_TITLES[step]}</strong></div>
-        <div className={`onboarding-progress step-${step + 2}`}><i /><i /><i /><i /></div>
+        <div className={`onboarding-progress step-${step + 1}`}><i /><i /><i /><i /></div>
         <form action={logoutAction}><button type="submit"><LogOut size={16} /> Sair</button></form>
       </div>
 
       <div className="onboarding-card">
-        <span className="onboarding-step"><Check size={14} /> ETAPA {step + 2} DE 4</span>
+        <span className="onboarding-step"><Check size={14} /> ETAPA {step + 1} DE 4</span>
         <h2>{step === 0 ? `Olá, ${userName.split(" ")[0]}!` : STEP_TITLES[step]}</h2>
         {canManage ? <>
           <p>{step === 0
             ? "Confirme os dados que seus clientes verão."
             : step === 1
               ? "Cadastre quem realiza os atendimentos. Você poderá editar a equipe depois."
-              : "Informe o que você oferece e selecione quem pode realizar cada serviço."}</p>
+              : step === 2 ? "Informe o que você oferece e selecione quem pode realizar cada serviço." : "Revise os dias e horários em que seu estabelecimento recebe clientes. Você poderá configurar pausas e folgas individuais em Configurações."}</p>
           <form ref={formRef} action={action} className="onboarding-form">
             <input type="hidden" name="catalog" value={catalog} />
+            <input type="hidden" name="bookingSettings" value={JSON.stringify(bookingSettings)} />
 
             <div className="onboarding-fields full" data-step="0" hidden={step !== 0}>
               <label className="full">Nome do estabelecimento<input name="name" defaultValue={business.name} required minLength={2} maxLength={100} autoComplete="organization" placeholder="Ex.: Studio Bella" /></label>
@@ -206,10 +210,20 @@ export function OnboardingForm({
               <button type="button" className="onboarding-add" disabled={services.length >= 30} onClick={addService}><Plus size={16} /> Adicionar serviço</button>
             </div>
 
+            <div className="onboarding-collection full" data-step="3" hidden={step !== 3}>
+              <p className="settings-note">Horário de Brasília · America/Sao_Paulo</p>
+              {weekdays.map((name, index) => <div className="schedule-row" key={name}>
+                <label><input type="checkbox" checked={bookingSettings.days[index].enabled} onChange={(event) => setBookingSettings({ ...bookingSettings, days: bookingSettings.days.map((day, i) => i === index ? { ...day, enabled: event.target.checked } : day) })}/>{name}</label>
+                <input type="time" aria-label={`Abertura — ${name}`} required disabled={!bookingSettings.days[index].enabled} value={bookingSettings.days[index].open} onChange={(event) => setBookingSettings({ ...bookingSettings, days: bookingSettings.days.map((day, i) => i === index ? { ...day, open: event.target.value } : day) })}/><span>até</span>
+                <input type="time" aria-label={`Fechamento — ${name}`} required disabled={!bookingSettings.days[index].enabled} value={bookingSettings.days[index].close} onChange={(event) => setBookingSettings({ ...bookingSettings, days: bookingSettings.days.map((day, i) => i === index ? { ...day, close: event.target.value } : day) })}/>
+              </div>)}
+              <div className="form-grid"><label>Antecedência mínima (minutos)<input type="number" min={0} max={10080} required value={bookingSettings.minNoticeMin} onChange={(event) => setBookingSettings({ ...bookingSettings, minNoticeMin: Number(event.target.value) })}/></label><label>Prazo máximo (dias)<input type="number" min={1} max={180} required value={bookingSettings.maxAdvanceDays} onChange={(event) => setBookingSettings({ ...bookingSettings, maxAdvanceDays: Number(event.target.value) })}/></label><label>Intervalo entre serviços (minutos)<input type="number" min={0} max={120} required value={bookingSettings.bufferMin} onChange={(event) => setBookingSettings({ ...bookingSettings, bufferMin: Number(event.target.value) })}/></label></div>
+            </div>
+
             {(clientError || state?.error) && <p className="form-error full" role="alert">{clientError || state?.error}</p>}
             <div className="onboarding-actions full">
               {step > 0 ? <button type="button" className="button outline" onClick={() => { setClientError(""); setStep((current) => current - 1); }}><ArrowLeft size={16} /> Voltar</button> : <span>Leva apenas alguns minutos</span>}
-              {step < 2
+              {step < 3
                 ? <button type="button" className="button primary" onClick={advance}>Continuar <ArrowRight size={16} /></button>
                 : <button className="button primary" disabled={pending}>{pending ? "Salvando..." : "Concluir e acessar o painel"}</button>}
             </div>

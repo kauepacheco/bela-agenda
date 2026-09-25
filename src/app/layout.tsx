@@ -7,8 +7,8 @@ const body = DM_Sans({ subsets: ["latin"], variable: "--font-body" });
 const display = Manrope({ subsets: ["latin"], variable: "--font-display" });
 
 export const metadata: Metadata = {
-  title: "Bela Agenda — gestão que conversa",
-  description: "Agenda inteligente para negócios de beleza.",
+  title: "Bela Agenda — agenda online para salões",
+  description: "Agenda online para salões e studios: horários, equipe e solicitações com confirmação pelo estabelecimento.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

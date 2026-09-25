@@ -1,3 +1,4 @@
+import { bookingSettingsSchema, type BookingSettings } from "./booking-policy";
 import { prisma } from "@/lib/prisma";
 
 export class OnboardingServiceError extends Error {
@@ -8,6 +9,7 @@ export class OnboardingServiceError extends Error {
 
 export async function completeBusinessOnboarding(input: {
   actorMembershipId: string;
+  bookingSettings: BookingSettings;
   name: string;
   address: string;
   city: string;
@@ -26,6 +28,7 @@ export async function completeBusinessOnboarding(input: {
   }>;
   now?: Date;
 }) {
+  const bookingSettings = bookingSettingsSchema.parse(input.bookingSettings);
   return prisma.$transaction(async (tx) => {
     let membership = await tx.membership.findFirst({
       where: { id: input.actorMembershipId, active: true, role: "OWNER" },
@@ -85,6 +88,7 @@ export async function completeBusinessOnboarding(input: {
         address: input.address.trim(),
         city: input.city.trim(),
         phone: input.phone.replace(/\D/g, ""),
+        bookingSettings,
         onboardingCompletedAt: input.now ?? new Date(),
       },
     });

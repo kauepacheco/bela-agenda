@@ -1,19 +1,12 @@
 "use server";
 
+import { bookingSettingsSchema, phoneSchema } from "@/lib/booking-policy";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireAuthContext } from "@/lib/auth";
 import { completeBusinessOnboarding, OnboardingServiceError } from "@/lib/onboarding-service";
 
 export type OnboardingState = { error?: string } | undefined;
-
-const phoneSchema = z.string().trim().refine(
-  (value) => {
-    const digits = value.replace(/\D/g, "");
-    return digits.length >= 10 && digits.length <= 13;
-  },
-  "Informe um WhatsApp válido com DDD.",
-);
 
 const catalogSchema = z.object({
   professionals: z.array(z.object({
@@ -49,10 +42,12 @@ export async function completeOnboardingAction(
   if (context.business.onboardingCompletedAt) redirect("/");
 
   let catalog: unknown;
+  let bookingSettings: unknown;
   try {
+    bookingSettings = JSON.parse(String(formData.get("bookingSettings") ?? ""));
     catalog = JSON.parse(String(formData.get("catalog") ?? ""));
   } catch {
-    return { error: "Revise os profissionais e serviços informados." };
+    return { error: "Revise os profissionais, serviços e horários informados." };
   }
 
   const parsed = z.object({
@@ -61,7 +56,8 @@ export async function completeOnboardingAction(
     city: z.string().trim().min(2, "Informe a cidade.").max(80),
     phone: phoneSchema,
     catalog: catalogSchema,
-  }).safeParse({ ...Object.fromEntries(formData), catalog });
+    bookingSettings: bookingSettingsSchema,
+  }).safeParse({ ...Object.fromEntries(formData), catalog, bookingSettings });
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Revise os dados informados." };
   }
@@ -69,6 +65,7 @@ export async function completeOnboardingAction(
   try {
     await completeBusinessOnboarding({
       actorMembershipId: context.membershipId,
+      bookingSettings: parsed.data.bookingSettings,
       name: parsed.data.name,
       address: parsed.data.address,
       city: parsed.data.city,
@@ -79,7 +76,7 @@ export async function completeOnboardingAction(
     if (error instanceof OnboardingServiceError) {
       return { error: "Somente o proprietário pode concluir a configuração inicial." };
     }
-    console.error("Falha ao concluir onboarding.", error);
+    console.error(JSON.stringify({ event: "onboarding_failed", error: error instanceof Error ? error.name : "UnknownError" }));
     return { error: "Não foi possível salvar os dados agora. Tente novamente." };
   }
 

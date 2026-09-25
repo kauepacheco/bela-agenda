@@ -8,11 +8,13 @@ Este documento é a referência de continuidade do produto. Ao concluir ou alter
 
 ## Visão do produto
 
-O Bela Agenda é uma secretária virtual com agenda online para salões e studios de beleza com equipes de 2 a 10 profissionais.
+A primeira oferta do Bela Agenda é uma agenda online com confirmação humana para salões e studios de beleza com equipes de 2 a 10 profissionais. Escopo escolhido explicitamente pelo fundador em 24/09/2026.
 
 Proposta de valor:
 
-> Responder clientes, encontrar horários, agendar, confirmar e remarcar atendimentos pelo WhatsApp, reduzindo o trabalho manual do estabelecimento.
+> Receber solicitações de horário pelo link do estabelecimento e organizar agenda, equipe e clientes, com confirmação e contato feitos pela equipe.
+
+WhatsApp automático e cobrança integrada são evoluções opcionais. M3 e os itens de automação de cobrança de M4 não bloqueiam esta primeira oferta.
 
 ## Mercado inicial
 
@@ -41,11 +43,11 @@ Proposta de valor:
 
 Limitações atuais:
 
-- O onboarding ainda não configura horários de funcionamento.
+- O onboarding inclui horários de funcionamento; profissionais podem ajustar jornadas em Configurações.
 - A implantação de homologação com PostgreSQL gerenciado ainda não foi criada.
-- O horário comum ao estabelecimento é configurável; jornadas individuais, intervalos de almoço e folgas ainda não são.
-- O WhatsApp ainda não está integrado.
-- Não há cobrança de assinaturas.
+- Jornadas individuais, pausas e bloqueios estão implementados e testados. A homologação com estabelecimentos reais permanece pendente.
+- Comunicação com clientes é feita pela equipe; os atalhos abrem rascunhos de WhatsApp.
+- Preço e forma de contratação precisam ser definidos; não há cobrança dentro do aplicativo.
 
 ## M1: fundação de SaaS multiempresa
 
@@ -56,8 +58,10 @@ Objetivo: permitir que um salão crie uma conta e tenha um ambiente isolado e co
 - [x] Migrar o banco de SQLite para PostgreSQL.
 - [x] Criar e versionar migrações de banco.
 - [x] Configurar PostgreSQL local e documentar as variáveis e o comando de migração para produção.
-- [ ] Definir rotina de backup e restauração.
-- [ ] Adicionar logs estruturados e monitoramento de erros.
+- [x] Definir rotina de backup e restauração isolada e validá-la com dados fictícios.
+- [ ] Configurar e restaurar backup externo da hospedagem.
+- [x] Adicionar logs estruturados, endpoint de saúde e verificação operacional.
+- [ ] Conectar monitoramento e alertas externos.
 
 ### Autenticação e autorização
 
@@ -76,7 +80,7 @@ Objetivo: permitir que um salão crie uma conta e tenha um ambiente isolado e co
 - [x] Coletar nome, endereço, cidade e WhatsApp do estabelecimento.
 - [x] Cadastrar profissionais e serviços durante o onboarding.
 - [x] Configurar horários de funcionamento na página Configurações (após o onboarding).
-- [ ] Incorporar a configuração de horários ao assistente de onboarding.
+- [x] Incorporar a configuração de horários ao assistente de onboarding.
 - [x] Gerar um slug público único.
 - [x] Exibir checklist de ativação no painel, com estado real da configuração de horários.
 
@@ -92,17 +96,18 @@ Objetivo: permitir que um salão crie uma conta e tenha um ambiente isolado e co
 
 Objetivo: tornar a agenda confiável para uso diário de um estabelecimento real.
 
-- [ ] Criar jornada de trabalho por profissional e dia da semana.
-- [ ] Permitir intervalos, folgas, férias e bloqueios manuais.
+- [x] Criar jornada de trabalho por profissional e dia da semana.
+- [x] Permitir intervalos, folgas, férias e bloqueios manuais.
 - [x] Configurar antecedência mínima e máxima para reservas.
 - [x] Configurar intervalo entre atendimentos.
 - [x] Considerar a duração completa do serviço ao exibir horários livres.
 - [x] Permitir cancelar e reagendar pelo painel.
 - [x] Permitir confirmar, concluir e marcar falta.
-- [ ] Criar visualizações diária e semanal.
+- [x] Organizar fila de solicitações por vencimento e oferecer contato manual, sem envio automático.
+- [x] Criar visualizações diária e semanal.
 - [x] Adicionar filtros por profissional e status.
 - [x] Registrar histórico de alterações do agendamento no banco.
-- [ ] Exibir o histórico de alterações no detalhe do atendimento.
+- [x] Exibir o histórico de alterações no detalhe do atendimento.
 - [x] Tratar corretamente o fuso horário `America/Sao_Paulo` na disponibilidade, reservas, agenda e painel.
 - [x] Proteger criação e reagendamento contra concorrência entre instâncias do aplicativo.
 - [x] Adicionar visualização em lista e incluir domingo na semana.
@@ -114,7 +119,7 @@ Objetivo: tornar a agenda confiável para uso diário de um estabelecimento real
 - A equipe consegue operar um dia completo somente pelo painel.
 - Os fluxos críticos possuem testes automatizados.
 
-## M3: integração oficial com WhatsApp
+## M3: integração oficial com WhatsApp — evolução futura
 
 Objetivo: automatizar agendamento e atendimento dentro do WhatsApp.
 
@@ -142,7 +147,7 @@ A IA poderá interpretar linguagem natural e extrair intenções. Disponibilidad
 
 ## M4: cobrança e operação comercial
 
-Objetivo: permitir aquisição e cobrança de clientes pagantes.
+Objetivo inicial: definir oferta, preço, suporte e contratação fora do aplicativo. Automação de assinaturas é uma evolução futura.
 
 - [ ] Definir planos, limites e período de teste.
 - [ ] Integrar cobrança recorrente por cartão e Pix, quando aplicável.
@@ -156,18 +161,20 @@ Objetivo: permitir aquisição e cobrança de clientes pagantes.
 
 - [ ] Publicar política de privacidade e termos de serviço.
 - [ ] Mapear dados pessoais e respectivas finalidades.
-- [ ] Implementar exportação e exclusão de dados do titular.
+- [x] Implementar exportação de cadastro/atendimentos e remoção de dados de contato pelo proprietário.
+- [ ] Definir e implementar pedidos de exclusão além dos contatos, incluindo dados de usuários e cópias externas.
 - [ ] Aplicar retenção de dados e exclusão de contas.
 - [ ] Revisar controle de acesso, rate limiting e validação de webhooks.
 - [ ] Proteger segredos e aplicar rotação de credenciais.
-- [ ] Testar restauração de backup.
+- [x] Testar restauração de backup local em banco isolado.
+- [ ] Testar restauração do backup externo de produção.
 - [ ] Criar procedimento de resposta a incidentes.
-- [ ] Executar testes de ponta a ponta dos fluxos críticos.
+- [x] Executar testes de ponta a ponta dos fluxos críticos.
 - [ ] Preparar homologação com os primeiros estabelecimentos.
 
 ## Fora do escopo inicial
 
-Estes itens só devem entrar após validação do núcleo de agenda e WhatsApp:
+Estes itens só devem entrar após validação comercial da agenda:
 
 - controle de estoque e compras;
 - emissão de NFS-e;
@@ -180,12 +187,18 @@ Estes itens só devem entrar após validação do núcleo de agenda e WhatsApp:
 
 ## Próxima tarefa
 
-Implementar jornada individual por profissional com múltiplos intervalos por dia e bloqueios datados (folgas/férias), reutilizando a validação compartilhada de disponibilidade. Cobrir conflito com pausa/bloqueio, alteração simultânea e isolamento entre empresas. Depois incorporar os horários ao onboarding. As demais frentes de lançamento estão priorizadas em `LANCAMENTO.md`.
+Preparar a homologação externa: criar hospedagem, domínio, PostgreSQL gerenciado e remetente de e-mail; seguir `OPERACAO.md`, validar backup externo e operação com um estabelecimento. Não exigir contas de WhatsApp oficial nem provedor de cobrança para este lançamento. Definir preço e forma de contratação fora do aplicativo. Definir identidade comercial, suporte, retenção e documentos antes de publicar. As partes locais de jornada, expiração, catálogo, histórico, proteção contra abuso e CI foram implementadas.
 
 ## Decisões registradas
 
 | Data | Decisão | Motivo |
 | --- | --- | --- |
+| 2026-09-24 | Lançar primeiro a agenda online com confirmação humana; adiar WhatsApp automático e cobrança integrada. | Escolha explícita do fundador. A equipe usa fila de solicitações e faz o contato manualmente; M3 e automação de M4 deixam de bloquear o lançamento. |
+| 2026-09-24 | Preservar nome, preço e duração na reserva; identificar preços legados como estimados. | Edição de catálogo não pode reescrever o contratado. Reagendamento preserva a duração original. |
+| 2026-09-24 | Restringir catálogo ao proprietário, validar versão nas edições e recusar inativação/remoção de vínculos com atendimentos abertos. | Evitar alterações perdidas, reservas órfãs e conflitos concorrentes. |
+| 2026-09-24 | Expirar solicitações públicas após 24 horas ou no início e limitar três pendências por cliente. | Liberar horários sem confirmação e reduzir retenção abusiva de vagas. |
+| 2026-09-24 | Usar contadores atômicos PostgreSQL e confiar em IP somente via cabeçalho explicitamente configurado. | Compartilhar limites entre instâncias sem confiar em cabeçalhos forjados. |
+| 2026-09-24 | Exportar dados por cliente e remover identificadores diretos sem prometer exclusão integral. | Entregar ferramentas delimitadas, preservando histórico e deixando explícitas as dependências de retenção e backups. |
 | 2026-09-24 | Centralizar criação, alteração e disponibilidade em `booking-service`; serializar mutações pela linha de `Business` com `SELECT ... FOR UPDATE` em transações PostgreSQL. | Eliminar a corrida entre consultar conflito e gravar; sincronizar inclusive alterações de configuração entre instâncias. Todos os novos escritores (WhatsApp, importações etc.) devem usar esse serviço. |
 | 2026-09-24 | Exigir configuração explícita de horários após a migração, sem presumir que o padrão sugerido é a jornada real. | Não abrir reservas em horários não aprovados pelo estabelecimento; preservar atendimentos existentes. |
 | 2026-09-24 | Começar com jornada comum à equipe em Brasília, regras de antecedência e intervalo; deixar jornada individual e pausas como próximo incremento. | Entregar uma base verificável sem representar limitações como recursos prontos. |

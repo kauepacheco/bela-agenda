@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
-import { addDays, setHours, setMinutes, startOfDay } from "date-fns";
+import { addDateDays, atBusinessTime, businessDate } from "../src/lib/booking-policy";
+import { pendingExpiry } from "../src/lib/pending-bookings";
 import { hashPassword } from "../src/lib/password";
 import { defaultBookingSettings } from "../src/lib/booking-policy";
 
@@ -56,14 +57,13 @@ async function main() {
     prisma.client.create({ data: { businessId: business.id, name: "Fernanda Melo", phone: "47994567890" } }),
   ]);
 
-  const base = startOfDay(new Date());
-  const at = (day: number, hour: number, minute = 0) => setMinutes(setHours(addDays(base, day), hour), minute);
+  const at = (day: number, hour: number, minute = 0) => atBusinessTime(addDateDays(businessDate(), day), `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`);
   await prisma.appointment.createMany({ data: [
-    { businessId: business.id, clientId: clients[0].id, professionalId: ana.id, serviceId: corte.id, startsAt: at(0, 9), endsAt: at(0, 10), status: "CONFIRMED", source: "WHATSAPP" },
-    { businessId: business.id, clientId: clients[1].id, professionalId: camila.id, serviceId: manicure.id, startsAt: at(0, 10, 30), endsAt: at(0, 11, 20), status: "CONFIRMED", source: "DASHBOARD" },
-    { businessId: business.id, clientId: clients[2].id, professionalId: julia.id, serviceId: sobrancelha.id, startsAt: at(0, 14), endsAt: at(0, 14, 30), status: "PENDING", source: "PUBLIC_BOOKING" },
-    { businessId: business.id, clientId: clients[3].id, professionalId: ana.id, serviceId: escova.id, startsAt: at(1, 11), endsAt: at(1, 11, 45), status: "CONFIRMED", source: "WHATSAPP" },
-    { businessId: business.id, clientId: clients[0].id, professionalId: camila.id, serviceId: manicure.id, startsAt: at(2, 15), endsAt: at(2, 15, 50), status: "CONFIRMED", source: "PUBLIC_BOOKING" },
+    { businessId: business.id, clientId: clients[0].id, professionalId: ana.id, serviceId: corte.id, serviceName: corte.name, priceCents: corte.priceCents, durationMin: corte.durationMin, startsAt: at(0, 9), endsAt: at(0, 10), status: "CONFIRMED", source: "DASHBOARD" },
+    { businessId: business.id, clientId: clients[1].id, professionalId: camila.id, serviceId: manicure.id, serviceName: manicure.name, priceCents: manicure.priceCents, durationMin: manicure.durationMin, startsAt: at(0, 10, 30), endsAt: at(0, 11, 20), status: "CONFIRMED", source: "DASHBOARD" },
+    { businessId: business.id, clientId: clients[2].id, professionalId: julia.id, serviceId: sobrancelha.id, serviceName: sobrancelha.name, priceCents: sobrancelha.priceCents, durationMin: sobrancelha.durationMin, startsAt: at(0, 14), endsAt: at(0, 14, 30), status: "PENDING", pendingExpiresAt: pendingExpiry(at(0, 14)), source: "PUBLIC_BOOKING" },
+    { businessId: business.id, clientId: clients[3].id, professionalId: ana.id, serviceId: escova.id, serviceName: escova.name, priceCents: escova.priceCents, durationMin: escova.durationMin, startsAt: at(1, 11), endsAt: at(1, 11, 45), status: "CONFIRMED", source: "DASHBOARD" },
+    { businessId: business.id, clientId: clients[0].id, professionalId: camila.id, serviceId: manicure.id, serviceName: manicure.name, priceCents: manicure.priceCents, durationMin: manicure.durationMin, startsAt: at(2, 15), endsAt: at(2, 15, 50), status: "CONFIRMED", source: "PUBLIC_BOOKING" },
   ] });
 }
 

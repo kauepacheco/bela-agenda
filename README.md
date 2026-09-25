@@ -1,33 +1,37 @@
 # Bela Agenda
 
-MVP de uma secretária virtual e agenda online para salões e studios de beleza. O produto foi desenhado para estabelecimentos com equipes de 2 a 10 profissionais.
+Agenda online com confirmação humana, em preparação para lançamento para salões e studios de beleza. O produto foi desenhado para estabelecimentos com equipes de 2 a 10 profissionais.
 
 O plano de evolução, as decisões de produto e a próxima tarefa ficam registrados em [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
-A revisão de 24/09/2026 e a lista priorizada para comercialização estão em [`docs/LANCAMENTO.md`](docs/LANCAMENTO.md). O produto ainda não deve ser anunciado como uma secretária de WhatsApp automatizada: essa integração não existe nesta versão.
+A revisão de 24/09/2026 e a lista priorizada para comercialização estão em [`docs/LANCAMENTO.md`](docs/LANCAMENTO.md). A primeira oferta definida é **agenda online com confirmação pela equipe**. WhatsApp automático e cobrança integrada ficam como evoluções futuras, fora dos requisitos desta versão.
 
 ## O que já funciona
 
 - painel com indicadores e próximos atendimentos;
-- agenda semanal (incluindo domingo) e lista, com filtros por profissional e status;
+- agenda diária, semanal (incluindo domingo) e lista, com filtros por profissional e status;
 - criação de agendamentos com proteção transacional contra reservas simultâneas;
+- fila de solicitações ordenada pelo prazo de confirmação, com confirmar/recusar e atalho para contato manual;
 - confirmação, cancelamento, reagendamento, conclusão e registro de falta;
-- histórico de criação e alterações persistido no banco;
+- histórico de criação e alterações persistido no banco e consultável na agenda;
 - configuração de funcionamento por dia, antecedência mínima/máxima e intervalo entre serviços;
 - disponibilidade calculada no servidor considerando a duração completa do serviço e o fuso de Brasília;
-- cadastro de clientes;
-- cadastro de profissionais e serviços;
+- cadastro, edição e inativação de clientes, com exportação e remoção de dados de contato pelo proprietário;
+- edição e inativação de profissionais/serviços, vínculos múltiplos e proteção de atendimentos abertos;
+- preço, nome e duração preservados por reserva, inclusive ao reagendar;
+- jornada por profissional, pausas, folgas e férias, com detecção de edições concorrentes;
+- limites de acesso compartilhados no banco e expiração de solicitações públicas;
 - página pública de agendamento;
 - persistência em PostgreSQL com migrações versionadas;
 - cadastro e login com sessões revogáveis;
-- onboarding obrigatório com dados do estabelecimento, profissionais e serviços;
+- onboarding obrigatório com dados do estabelecimento, profissionais, serviços e horários;
 - recuperação de senha por link de uso único;
 - convites por e-mail e gestão de acessos da equipe pelo proprietário;
 - isolamento dos dados privados por estabelecimento.
 
 ## Rodando localmente
 
-Requisitos: Node.js 20.9 ou superior e Docker (para o PostgreSQL local).
+Requisitos: Node.js 22 ou superior e Docker (para o PostgreSQL local).
 
 ```bash
 npm install
@@ -45,6 +49,7 @@ Acesse:
 - login: `http://localhost:3000/entrar`
 - onboarding: `http://localhost:3000/onboarding`
 - agenda: `http://localhost:3000/agenda`
+- solicitações: `http://localhost:3000/solicitacoes`
 - página pública: `http://localhost:3000/agendar/atelier-bela`
 
 O seed cria um estabelecimento fictício chamado Ateliê Bela e alguns agendamentos próximos à data atual. Ele exige um banco vazio e não apaga dados existentes; também recusa execução com `NODE_ENV=production`. Use somente em um banco dedicado à demonstração. A conta demonstrativa usa `demo@belaagenda.com.br` e a senha `Bela1234!`.
@@ -59,9 +64,9 @@ npm run build
 
 A migração `20260924120000_booking_operations` adiciona configurações de agenda e histórico sem apagar agendamentos. Após a atualização, o proprietário deve acessar **Configurações**, revisar os dias/horários e salvar. Novas reservas ficam bloqueadas até essa configuração; os atendimentos existentes são preservados. Não execute `db:reset` nem o seed em bancos de clientes.
 
-O funcionamento configurado é comum a toda a equipe. Folgas, férias, pausas de almoço e jornadas individuais ainda precisam ser implementadas. O fuso operacional desta versão é `America/Sao_Paulo`, inclusive quando servidor ou navegador usam outro fuso.
+O funcionamento configurado limita a agenda da equipe. Cada profissional pode ter períodos próprios de trabalho e bloqueios datados em **Configurações**. Mudanças que conflitam com atendimentos abertos são recusadas. O fuso operacional desta versão é `America/Sao_Paulo`, inclusive quando servidor ou navegador usam outro fuso.
 
-Em homologação e produção, configure `DATABASE_URL` com a conexão do PostgreSQL gerenciado e execute `npm run db:deploy` durante a implantação. Backups automáticos e restaurações devem ser configurados no provedor; a rotina operacional será detalhada em uma etapa própria do M1.
+Em homologação e produção, configure `DATABASE_URL` com a conexão do PostgreSQL gerenciado e execute `npm run db:deploy` durante a implantação. Backups automáticos externos devem ser configurados no provedor. As rotinas de backup, restauração isolada, manutenção, monitoramento e implantação estão em [`docs/OPERACAO.md`](docs/OPERACAO.md).
 
 ## E-mail de recuperação de senha
 
@@ -91,4 +96,13 @@ Os testes iniciam um PostgreSQL efêmero, aplicam as migrações reais e removem
 
 ## Antes de produção
 
-Esta entrega ainda tem bloqueios para lançamento comercial. Priorize jornadas individuais/folgas, proteção contra abuso, implantação de homologação com backup restaurável, integração oficial com WhatsApp, cobrança e documentos de privacidade/termos. Consulte os critérios de aceite e dependências em [`docs/LANCAMENTO.md`](docs/LANCAMENTO.md). Build e testes aprovados não substituem homologação com estabelecimentos reais.
+Para a oferta escolhida, ainda faltam domínio/hospedagem, configuração e validação real de e-mail, backup externo e monitoramento, definição de preço/forma de contratação e documentos comerciais/privacidade. A equipe confirma os pedidos e avisa os clientes manualmente. Os atalhos do WhatsApp abrem rascunhos; o operador revisa e envia. WhatsApp automático e cobrança integrada não são bloqueios deste lançamento. Consulte os critérios de aceite e dependências em [`docs/LANCAMENTO.md`](docs/LANCAMENTO.md). Build e testes aprovados não substituem homologação com estabelecimentos reais.
+
+## Operação e dados
+
+- [`docs/OPERACAO.md`](docs/OPERACAO.md): implantação, manutenção, backup, restauração e CI.
+- [`docs/DADOS-E-SUPORTE.md`](docs/DADOS-E-SUPORTE.md): inventário técnico e limites da exportação/remoção de contato.
+- `npm run test:e2e`: build e navegador com banco descartável (instale Chromium com `npx playwright install --with-deps chromium`).
+- `npm run ops:test-backup`: teste completo de backup/restauração, com ferramentas PostgreSQL instaladas.
+
+As novas migrações preservam atendimentos existentes. Reservas pendentes expiram em até 24 horas ou no início do atendimento. Preços de reservas anteriores à migração são estimados pelo catálogo disponível naquele momento e identificados dessa forma no detalhe; reservas novas preservam os dados registrados. Nunca use reset para atualizar uma instalação.

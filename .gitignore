@@ -6,3 +6,7 @@ node_modules
 prisma/dev.db
 npm-debug.log*
 *.tsbuildinfo
+
+playwright-report/
+test-results/
+backups/

@@ -1,5 +1,7 @@
 "use server";
 
+import { headers } from "next/headers";
+import { consumeRateLimit, limitNetwork, RateLimitError } from "@/lib/rate-limit";
 import { z } from "zod";
 import {
   createPasswordResetToken,
@@ -14,7 +16,7 @@ export type PasswordResetState = {
 } | undefined;
 
 const emailSchema = z.string().trim().toLowerCase().email("Informe um e-mail válido.");
-const passwordSchema = z.string()
+const passwordSchema = z.string().max(128)
   .min(8, "A senha deve ter ao menos 8 caracteres.")
   .regex(/[A-Za-z]/, "Inclua uma letra na senha.")
   .regex(/[0-9]/, "Inclua um número na senha.");
@@ -29,6 +31,8 @@ export async function requestPasswordResetAction(
   if (!parsed.success) return { error: parsed.error.issues[0]?.message };
 
   try {
+    await limitNetwork("password-reset", await headers(), 20, 3600);
+    await consumeRateLimit("password-reset:email", parsed.data, 3, 3600);
     const reset = await createPasswordResetToken(parsed.data);
     if (reset) {
       try {
@@ -38,11 +42,11 @@ export async function requestPasswordResetAction(
         await sendPasswordResetEmail({ to: reset.email, resetUrl: resetUrl.toString() });
       } catch (error) {
         await discardPasswordResetToken(reset.token);
-        console.error("Falha ao enviar e-mail de recuperação de senha.", error);
+        console.error(JSON.stringify({ event: "password_reset_email_failed", error: error instanceof Error ? error.name : "UnknownError" }));
       }
     }
   } catch (error) {
-    console.error("Falha ao solicitar recuperação de senha.", error);
+    if (!(error instanceof RateLimitError)) console.error(JSON.stringify({ event: "password_reset_failed", error: error instanceof Error ? error.name : "UnknownError" }));
   }
 
   return { success: genericRequestMessage };
@@ -67,9 +71,11 @@ export async function resetPasswordAction(
 
   let changed = false;
   try {
+    await limitNetwork("reset-token", await headers(), 30, 900);
     changed = await resetPasswordWithToken(parsed.data.token, parsed.data.password);
   } catch (error) {
-    console.error("Falha ao redefinir senha.", error);
+    if (error instanceof RateLimitError) return { error: error.message };
+    console.error(JSON.stringify({ event: "password_reset_token_failed", error: error instanceof Error ? error.name : "UnknownError" }));
     return { error: "Não foi possível redefinir a senha agora. Tente novamente." };
   }
   if (!changed) return { error: "Este link é inválido ou expirou. Solicite um novo." };

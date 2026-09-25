@@ -45,6 +45,10 @@ export function addDateDays(day: string, count: number) {
 export function bookingWindowError(settings: BookingSettings, startsAt: Date, durationMin: number, now = new Date()) {
   if (startsAt.getTime() <= now.getTime() || startsAt.getTime() < now.getTime() + settings.minNoticeMin * 60_000) return "Este horário não atende à antecedência mínima para reservas.";
   if (startsAt.getTime() > now.getTime() + settings.maxAdvanceDays * 86400_000) return "Este horário está além do prazo máximo para reservas.";
+  return workingWindowError(settings, startsAt, durationMin);
+}
+
+export function workingWindowError(settings: BookingSettings, startsAt: Date, durationMin: number) {
   const day = businessDate(startsAt);
   const schedule = settings.days[new Date(`${day}T12:00:00Z`).getUTCDay()];
   const end = startsAt.getTime() + (durationMin + settings.bufferMin) * 60_000;

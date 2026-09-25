@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CalendarDays, ChartNoAxesCombined, ContactRound, ExternalLink, LogOut, Scissors, Settings, Sparkles, UsersRound } from "lucide-react";
+import { Inbox, CalendarDays, ChartNoAxesCombined, ContactRound, ExternalLink, LogOut, Scissors, Settings, Sparkles, UsersRound } from "lucide-react";
 import { logoutAction } from "@/app/auth-actions";
 
 const navigation = [
   { href: "/", label: "Visão geral", icon: ChartNoAxesCombined },
+  { href: "/solicitacoes", label: "Solicitações", icon: Inbox },
   { href: "/agenda", label: "Agenda", icon: CalendarDays },
   { href: "/clientes", label: "Clientes", icon: ContactRound },
   { href: "/catalogo", label: "Serviços e equipe", icon: Scissors },
