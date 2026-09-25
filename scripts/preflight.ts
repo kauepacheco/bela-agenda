@@ -1,4 +1,6 @@
 import { prisma } from "../src/lib/prisma";
+import path from "node:path";
+import { migrationsMatchRelease } from "./migration-check";
 
 async function main() {
   const checks: { check: string; ok: boolean }[] = [];
@@ -12,6 +14,8 @@ async function main() {
     checks.push({ check: "database_connection", ok: true });
     const pending = await prisma.$queryRaw<{ count: number }[]>`SELECT COUNT(*)::int AS count FROM "_prisma_migrations" WHERE finished_at IS NULL AND rolled_back_at IS NULL`;
     checks.push({ check: "no_failed_migrations", ok: pending[0].count === 0 });
+    const migrations = await prisma.$queryRaw<{ migration_name: string; checksum: string; finished_at: Date | null; rolled_back_at: Date | null }[]>`SELECT migration_name, checksum, finished_at, rolled_back_at FROM "_prisma_migrations"`;
+    checks.push({ check: "migrations_match_release", ok: await migrationsMatchRelease(migrations, path.resolve(__dirname, "../prisma/migrations")) });
     checks.push({ check: "no_demo_account", ok: !await prisma.user.findUnique({ where: { email: "demo@belaagenda.com.br" }, select: { id: true } }) });
   } catch { checks.push({ check: "database_schema", ok: false }); }
   console.log(JSON.stringify({ event: "preflight", checks, note: "Não comprova entrega de email, confiança do proxy, backup externo, documentos legais ou integrações comerciais." }));

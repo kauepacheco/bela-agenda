@@ -25,6 +25,8 @@ Use Node.js 22 ou superior, PostgreSQL e um processo Node persistente atrás de 
 2. Execute `npm ci`, `npx prisma generate` e `npm run build` no ambiente de build.
 3. Execute `npm run db:deploy` como etapa única de migração e confira `npx prisma migrate status`.
 4. Execute `npm run ops:check` com as variáveis de produção. A verificação não envia e-mails nem altera cadastros. Um resultado aprovado confirma apenas os itens técnicos exibidos.
+
+   A checagem `migrations_match_release` compara nomes e checksums das migrações concluídas no banco com os arquivos desta versão. Recusa migrações ausentes, incompletas, alteradas ou desconhecidas; tentativas revertidas são desconsideradas. Distribua a pasta `prisma/migrations` junto dos scripts operacionais. Em caso de falha, confira `npx prisma migrate status` antes de liberar o ambiente.
 5. Inicie `npm start` sob um supervisor com reinício automático e encerramento gracioso. Coloque o proxy HTTPS na frente do processo.
 6. Monitore `GET /api/health`: HTTP 200 indica conexão disponível; HTTP 503 indica falha de banco. A rota não retorna credenciais ou detalhes internos.
 7. Em homologação, valide cadastro/onboarding, jornadas, reserva pública, confirmação, reagendamento, cancelamento e e-mails reais de convite/recuperação.

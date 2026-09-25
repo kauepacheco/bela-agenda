@@ -1,6 +1,6 @@
 # Roadmap do Bela Agenda
 
-Última atualização: 24 de setembro de 2026.
+Última atualização: 25 de setembro de 2026.
 
 Veja também [`LANCAMENTO.md`](LANCAMENTO.md) para a auditoria atual, evidências e prioridades comerciais. Os checkboxes de M0 abaixo registram o marco histórico, não uma certificação de produção.
 
@@ -193,6 +193,7 @@ Preparar a homologação externa: criar hospedagem, domínio, PostgreSQL gerenci
 
 | Data | Decisão | Motivo |
 | --- | --- | --- |
+| 2026-09-25 | Comparar as migrações aplicadas e seus checksums com a versão distribuída no `ops:check`. | Uma conexão válida e a ausência de migrações com erro não garantem que o banco recebeu todas as atualizações. |
 | 2026-09-24 | Lançar primeiro a agenda online com confirmação humana; adiar WhatsApp automático e cobrança integrada. | Escolha explícita do fundador. A equipe usa fila de solicitações e faz o contato manualmente; M3 e automação de M4 deixam de bloquear o lançamento. |
 | 2026-09-24 | Preservar nome, preço e duração na reserva; identificar preços legados como estimados. | Edição de catálogo não pode reescrever o contratado. Reagendamento preserva a duração original. |
 | 2026-09-24 | Restringir catálogo ao proprietário, validar versão nas edições e recusar inativação/remoção de vínculos com atendimentos abertos. | Evitar alterações perdidas, reservas órfãs e conflitos concorrentes. |
