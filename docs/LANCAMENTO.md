@@ -10,7 +10,7 @@ WhatsApp automático e cobrança integrada passam a ser evoluções futuras. Nã
 
 ## Diagnóstico
 
-Revalidação em 25/09/2026: os 50 testes, TypeScript, lint e build passaram. Neste ambiente, a suíte de navegador não iniciou por ausência de bibliotecas do Chromium (`libnspr4.so`), e o teste de restauração não completou por ausência dos clientes `pg_dump`/`pg_restore`. As evidências de 24/09 abaixo são históricas; essas duas verificações precisam ser repetidas em ambiente preparado.
+Revalidação em 25/09/2026: Docker Desktop integrado ao WSL, banco local atualizado com as nove migrações após backup. A imagem `Dockerfile.verify` passou no build, TypeScript, lint, 51 testes, fluxo completo no Chromium em desktop/celular e backup/restauração com dados fictícios. O container de testes executou sem rede externa e sem montar o banco local. Isso resolve as limitações anteriores de bibliotecas ausentes no WSL; a homologação externa e o backup do futuro provedor continuam pendentes.
 
 A base operacional está implementada e validada localmente: autenticação, onboarding, equipe, clientes, catálogo, jornadas, agenda, solicitações e isolamento por empresa. O próximo marco é homologar a implantação externa com um estabelecimento e concluir as condições comerciais e de suporte.
 

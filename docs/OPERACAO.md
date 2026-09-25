@@ -84,6 +84,8 @@ Em incidente: registre início e impacto sem copiar dados pessoais, contenha a c
 
 ## Verificação contínua
 
+Alternativa local em Docker/WSL: `docker compose --profile verify build verify` seguido de `docker compose --profile verify run --rm verify`. O build instala as dependências e compila o aplicativo; o container executa as verificações e o teste de backup/restauração com PostgreSQL descartável, sem acesso à rede externa ou ao volume local. Essa imagem é destinada à validação e não à hospedagem do produto. A instalação segue as orientações de [Playwright em Docker](https://playwright.dev/docs/docker) e do [repositório PostgreSQL para Debian](https://www.postgresql.org/download/linux/debian/).
+
 `.github/workflows/verify.yml` executa TypeScript, lint, integração com PostgreSQL temporário e navegador Chromium. A suíte de navegador cobre telas de 1440 e 390 pixels com fuso de Los Angeles, enquanto as reservas continuam em Brasília. Falhas retêm artefatos por sete dias; os testes usam somente dados fictícios.
 
 ```bash

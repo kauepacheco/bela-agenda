@@ -187,12 +187,13 @@ Estes itens só devem entrar após validação comercial da agenda:
 
 ## Próxima tarefa
 
-Preparar a homologação externa: criar hospedagem, domínio, PostgreSQL gerenciado e remetente de e-mail; seguir `OPERACAO.md`, validar backup externo e operação com um estabelecimento. Não exigir contas de WhatsApp oficial nem provedor de cobrança para este lançamento. Definir preço e forma de contratação fora do aplicativo. Definir identidade comercial, suporte, retenção e documentos antes de publicar. As partes locais de jornada, expiração, catálogo, histórico, proteção contra abuso e CI foram implementadas.
+Validar a rotina acompanhada no ambiente local: acessar `http://localhost:3000`, revisar e salvar os horários em Configurações e simular solicitações e confirmações com o responsável pelo estabelecimento. Docker/WSL, migrações e validação automatizada completa (incluindo navegador e restauração) passaram em 25/09. Depois, preparar a homologação externa com hospedagem, domínio, PostgreSQL gerenciado e remetente de e-mail; seguir `OPERACAO.md` e validar backup externo. Não exigir WhatsApp oficial nem cobrança integrada para este lançamento. Definir preço, contratação, identidade comercial, suporte, retenção e documentos antes de publicar.
 
 ## Decisões registradas
 
 | Data | Decisão | Motivo |
 | --- | --- | --- |
+| 2026-09-25 | Oferecer validação completa em Docker com bancos descartáveis e execução sem rede externa. | Permitir repetir navegador e backup no WSL sem instalar dependências do sistema ou usar o volume local. |
 | 2026-09-25 | Comparar as migrações aplicadas e seus checksums com a versão distribuída no `ops:check`. | Uma conexão válida e a ausência de migrações com erro não garantem que o banco recebeu todas as atualizações. |
 | 2026-09-24 | Lançar primeiro a agenda online com confirmação humana; adiar WhatsApp automático e cobrança integrada. | Escolha explícita do fundador. A equipe usa fila de solicitações e faz o contato manualmente; M3 e automação de M4 deixam de bloquear o lançamento. |
 | 2026-09-24 | Preservar nome, preço e duração na reserva; identificar preços legados como estimados. | Edição de catálogo não pode reescrever o contratado. Reagendamento preserva a duração original. |

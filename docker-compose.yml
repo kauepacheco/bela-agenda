@@ -1,4 +1,12 @@
 services:
+  verify:
+    profiles: ["verify"]
+    build:
+      context: .
+      dockerfile: Dockerfile.verify
+    init: true
+    shm_size: 1gb
+    network_mode: none
   postgres:
     image: postgres:17-alpine
     environment:

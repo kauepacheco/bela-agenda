@@ -84,6 +84,17 @@ As mesmas configurações são usadas para convites de equipe. Convites expiram 
 
 ## Verificações
 
+Com Docker Desktop integrado ao WSL, também é possível executar a validação completa sem instalar Chromium ou clientes PostgreSQL no computador:
+
+```bash
+docker compose --profile verify build verify
+docker compose --profile verify run --rm verify
+```
+
+A imagem oficial do Playwright inclui Node e Chromium; o Dockerfile acrescenta clientes PostgreSQL 18. O build precisa de internet para baixar dependências e fontes. A execução verifica TypeScript, lint, testes de integração, fluxos no navegador e backup/restauração usando bancos descartáveis dentro do container, sem rede externa e sem montar o volume do banco local. `.env` e backups são excluídos da imagem. Reconstrua a imagem após alterar o código.
+
+Para abrir o aplicativo no computador, mantenha `docker compose up -d --wait postgres` e `npm run dev` ativos e acesse `http://localhost:3000`. Em um banco existente, use `npm run db:deploy`; não repita o seed. Depois da atualização, revise e salve os horários em **Configurações** para liberar novas reservas.
+
 ```bash
 npm run typecheck
 npm run lint
