@@ -1,4 +1,6 @@
-# Bela Agenda
+# Santa Agenda
+
+Nome atualizado em 25/09/2026. O roteiro de validação externa está em [`docs/HOMOLOGACAO.md`](docs/HOMOLOGACAO.md). Identificadores internos existentes de banco/volume, cookie de sessão e conta demonstrativa foram mantidos para preservar acesso e compatibilidade; eles não definem a marca exibida.
 
 Agenda online com confirmação humana, em preparação para lançamento para salões e studios de beleza. O produto foi desenhado para estabelecimentos com equipes de 2 a 10 profissionais.
 
@@ -75,7 +77,7 @@ O provedor transacional adotado é o [Resend](https://resend.com). Para entregar
 ```bash
 APP_URL="https://agenda.seudominio.com.br"
 RESEND_API_KEY="re_..."
-EMAIL_FROM="Bela Agenda <agenda@seudominio.com.br>"
+EMAIL_FROM="Santa Agenda <agenda@seudominio.com.br>"
 ```
 
 O domínio do remetente precisa estar validado no Resend. Em desenvolvimento, se `RESEND_API_KEY` ou `EMAIL_FROM` não estiverem configurados, o link é exibido no terminal do servidor e nenhum e-mail é enviado. Em produção, essas variáveis são obrigatórias.
@@ -107,7 +109,7 @@ Os testes iniciam um PostgreSQL efêmero, aplicam as migrações reais e removem
 
 ## Antes de produção
 
-Para a oferta escolhida, ainda faltam domínio/hospedagem, configuração e validação real de e-mail, backup externo e monitoramento, definição de preço/forma de contratação e documentos comerciais/privacidade. A equipe confirma os pedidos e avisa os clientes manualmente. Os atalhos do WhatsApp abrem rascunhos; o operador revisa e envia. WhatsApp automático e cobrança integrada não são bloqueios deste lançamento. Consulte os critérios de aceite e dependências em [`docs/LANCAMENTO.md`](docs/LANCAMENTO.md). Build e testes aprovados não substituem homologação com estabelecimentos reais.
+Em 25/09/2026, o fundador confirmou implantação no Render com Supabase, domínio `https://santaagenda.kapio.com.br` na Cloudflare e recuperação de senha via Resend funcionando. Próxima sessão: testar convite de funcionário; veja o [registro da implantação](docs/PLANO-IMPLANTACAO.md). Ainda faltam homologação online completa, backup externo e monitoramento, validação das condições comerciais e documentos de privacidade. A equipe confirma os pedidos e avisa os clientes manualmente. Os atalhos do WhatsApp abrem rascunhos; o operador revisa e envia. WhatsApp automático e cobrança integrada não são bloqueios deste lançamento. Consulte os critérios de aceite e dependências em [`docs/LANCAMENTO.md`](docs/LANCAMENTO.md). Build e testes aprovados não substituem homologação com estabelecimentos reais.
 
 ## Operação e dados
 
@@ -117,3 +119,9 @@ Para a oferta escolhida, ainda faltam domínio/hospedagem, configuração e vali
 - `npm run ops:test-backup`: teste completo de backup/restauração, com ferramentas PostgreSQL instaladas.
 
 As novas migrações preservam atendimentos existentes. Reservas pendentes expiram em até 24 horas ou no início do atendimento. Preços de reservas anteriores à migração são estimados pelo catálogo disponível naquele momento e identificados dessa forma no detalhe; reservas novas preservam os dados registrados. Nunca use reset para atualizar uma instalação.
+
+## Arquivos versionados e locais
+
+Código, migrações, testes, lockfile, configuração reproduzível e documentação de operação ficam no GitHub. Segredos, bancos, backups, exportações de clientes, logs e artefatos gerados ficam fora do Git. Use `local/` para evidências e anotações privadas; `.env.example` deve conter somente valores fictícios.
+
+`next-env.d.ts` é gerado por `next dev`, `next build` ou `npm run typecheck` e não é versionado, conforme a documentação da versão instalada do Next.js.

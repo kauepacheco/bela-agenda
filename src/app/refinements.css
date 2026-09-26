@@ -4,8 +4,8 @@ body { -webkit-font-smoothing: antialiased; }
 button:disabled { cursor: not-allowed; opacity: .55; }
 .button { min-height: 43px; }
 .sidebar { background: #243c32; overflow-y: auto; }
-.brand { margin-bottom: 30px; letter-spacing: -.06em; font-size: 28px; }
-.brand-mark { background: #ddab89; color: #243c32; }
+.brand { margin-bottom: 30px; letter-spacing: -.04em; font-size: 22px; }
+.brand-mark { flex-shrink: 0; background: #ddab89; color: #243c32; }
 .nav-link.active { background: #e9f0df; color: #263c2e; }
 .nav-title { color: #a6b6ab; }
 .workspace-card { margin-bottom: 32px; }

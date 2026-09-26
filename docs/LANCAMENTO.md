@@ -1,16 +1,26 @@
-# Preparação para lançamento — Bela Agenda
+# Preparação para lançamento — Santa Agenda
 
-Revisão: 24 de setembro de 2026.
+> Estado atual: implantação de testes no Render + Supabase, domínio HTTPS na Cloudflare, Resend verificado e recuperação de senha confirmados pelo fundador em 25/09/2026. A primeira implantação ainda exibia Bela porque a mudança estava só nos arquivos locais. Este commit prepara a marca Santa Agenda para push manual; conferir o deploy e depois testar convite de funcionário. Ver [implantação](PLANO-IMPLANTACAO.md) e [homologação](HOMOLOGACAO.md).
+
+Revisão: 25 de setembro de 2026.
+
+## Santa Agenda — validação após a mudança de nome
+
+Em 25/09/2026, a marca foi atualizada nas telas de acesso, onboarding, painel, página pública, erro 404, metadados e mensagens de e-mail. Identificadores internos de banco/volume, cookie de sessão e conta demonstrativa foram preservados por compatibilidade.
+
+Registro de validação anterior com `Dockerfile.verify` (não reexecutado nesta revisão do repositório): build, TypeScript, lint e 51 testes aprovados; suíte Chromium aprovada com fluxo operacional e telas de 1440/390px, sem transbordamento horizontal ou erros de JavaScript capturados. Capturas do painel desktop e página pública móvel conferidas com a marca nova. Backup/restauração aprovados com comparação dos dados e recusa de checksum inválido, destino ocupado e sobrescrita de arquivo. Execução em container sem rede externa, com PostgreSQL descartável e sem montar o banco do operador.
+
+**Pendências externas atuais:** convite de funcionário e cenários adicionais de recuperação, backup/restauração externos, manutenção/alertas, validação do proxy, rotina acompanhada com estabelecimento e documentos comerciais. O recebimento, a redefinição e o login com nova senha já foram confirmados pelo fundador; a homologação completa permanece pendente.
 
 ## Escopo definido para a primeira oferta
 
 **Agenda online com confirmação humana**, conforme escolha do fundador em 24/09/2026. O cliente solicita um horário pelo link público; a equipe revisa a fila, confirma ou recusa no painel e avisa o cliente manualmente. Os atalhos do WhatsApp abrem rascunhos para revisão e envio pelo operador.
 
-WhatsApp automático e cobrança integrada passam a ser evoluções futuras. Não são requisitos para lançar esta oferta. O preço e a forma de contratação fora do aplicativo ainda precisam ser definidos.
+WhatsApp automático e cobrança integrada passam a ser evoluções futuras. Não são requisitos para lançar esta oferta. O fundador informou R$ 69/mês e 30 dias grátis com cobrança externa; falta validar o checkout e as condições de contratação/cancelamento.
 
-## Diagnóstico
+## Histórico de validação local
 
-Revalidação em 25/09/2026: Docker Desktop integrado ao WSL, banco local atualizado com as nove migrações após backup. A imagem `Dockerfile.verify` passou no build, TypeScript, lint, 51 testes, fluxo completo no Chromium em desktop/celular e backup/restauração com dados fictícios. O container de testes executou sem rede externa e sem montar o banco local. Isso resolve as limitações anteriores de bibliotecas ausentes no WSL; a homologação externa e o backup do futuro provedor continuam pendentes.
+Revalidação em 25/09/2026: Docker Desktop integrado ao WSL, banco local atualizado com as nove migrações após backup. A imagem `Dockerfile.verify` passou no build, TypeScript, lint, 51 testes, fluxo completo no Chromium em desktop/celular e backup/restauração com dados fictícios. O container de testes executou sem rede externa e sem montar o banco local. Isso resolve as limitações anteriores de bibliotecas ausentes no WSL; a homologação externa completa e o backup externo continuam pendentes.
 
 A base operacional está implementada e validada localmente: autenticação, onboarding, equipe, clientes, catálogo, jornadas, agenda, solicitações e isolamento por empresa. O próximo marco é homologar a implantação externa com um estabelecimento e concluir as condições comerciais e de suporte.
 
@@ -30,13 +40,13 @@ Implementado e validado localmente nesta continuação:
 
 Evidência atual: 50 testes de integração/unidade aprovados; TypeScript, lint e build aprovados; suíte de Chromium versionada com fluxos operacionais em 1440/390px e fuso de Los Angeles; teste de backup/restauração aprovado. A execução remota do CI e a restauração de backup do futuro provedor ainda não ocorreram. Consulte `OPERACAO.md` e `DADOS-E-SUPORTE.md`.
 
-**Bloqueios da oferta escolhida:** domínio, hospedagem e PostgreSQL gerenciado; entrega real de e-mail; backup externo e alertas; identidade da operadora, suporte, preço/forma de contratação, retenção e termos/política; homologação com um estabelecimento. WhatsApp automático e assinatura integrada permanecem fora desta versão e não bloqueiam seu lançamento.
+**Bloqueios registrados em 24/09/2026 (histórico):** domínio, hospedagem e PostgreSQL gerenciado; entrega real de e-mail; backup externo e alertas; identidade da operadora, suporte, preço/forma de contratação, retenção e termos/política; homologação com um estabelecimento. Consulte o estado atual acima para os avanços posteriores. WhatsApp automático e assinatura integrada permanecem fora desta versão e não bloqueiam seu lançamento.
 
 A fila `/solicitacoes` reúne os pedidos de todas as datas por vencimento, em páginas de até 50 itens. Confirmar/recusar exige que o pedido continue pendente, evitando que uma tela desatualizada cancele uma confirmação feita por outra pessoa.
 
 A seção abaixo registra a revisão anterior; sua contagem de 27 testes é histórica.
 
-## Implementado nesta revisão
+## Implementado na revisão inicial (histórico)
 
 - Configurações do estabelecimento editáveis pelo proprietário, incluindo dias de funcionamento, abertura/fechamento, antecedência e intervalo entre serviços.
 - Disponibilidade pública calculada no servidor para o serviço completo, com vínculos válidos entre profissional e serviço.
@@ -51,7 +61,7 @@ A seção abaixo registra a revisão anterior; sua contagem de 27 testes é hist
 - Páginas de erro e endereço não encontrado em português.
 - Seed de demonstração deixa de apagar dados e exige banco vazio fora de produção.
 
-## Verificações
+## Verificações da revisão inicial (histórico)
 
 - 27 testes automatizados em PostgreSQL efêmero com migrações reais, incluindo os 16 testes anteriores de autenticação/isolation e 11 novos de agenda/configurações.
 - Casos novos: concorrência, sobreposição parcial, intervalo antes/depois, fechamento, datas passadas, prazo máximo/mínimo, jornada fechada, vínculo inválido, isolamento, cancelamento, reagendamento, histórico, falta/conclusão, privacidade da resposta pública, permissões de configurações e entradas inválidas.
@@ -69,9 +79,9 @@ Limites: não foram feitos testes de carga, auditoria formal de segurança/acess
 | --- | --- | --- | --- |
 | Concluído localmente | Jornada por profissional, pausas, folgas, férias e bloqueios | Página pública e painel nunca oferecem/gravam horários em pausas ou bloqueios; testes de concorrência e isolamento | Implementação |
 | Implementado; validar proxy | Proteção contra abuso | Limites compartilhados entre instâncias para login, recuperação, convites e reserva pública; proteção contra reservas massivas/duplicadas; regras documentadas de expiração de pendências | Implementação e infraestrutura |
-| P0 — piloto | Homologação e backup | Domínio/HTTPS, PostgreSQL gerenciado, migrações aplicadas, credenciais separadas, backup e restauração testada em ambiente isolado | Escolha de hospedagem e conta do provedor |
+| P0 — piloto | Homologação e backup | Domínio/HTTPS, PostgreSQL gerenciado, migrações aplicadas, credenciais separadas, backup e restauração testada em ambiente isolado | Provedores configurados; validação operacional pendente |
 | P0 — piloto | Privacidade e suporte | Política e termos correspondem ao tratamento real de dados; contato de suporte, procedimento de exportação/exclusão e retenção definidos | Dados da empresa e revisão adequada |
-| P0 — piloto | E-mail transacional real | Remetente validado; recuperação e convites recebidos, expirados e revogados testados em homologação | Resend, domínio e credenciais |
+| P0 — piloto | E-mail transacional real | Remetente validado; recuperação e convites recebidos, expirados e revogados testados em homologação | Recuperação confirmada; convite e cenários adicionais pendentes |
 | Futuro — fora da primeira oferta | Integração oficial de WhatsApp | Webhook autenticado, idempotência, vínculo com empresa, consulta/alteração via serviço determinístico, confirmação/lembrete e transferência humana testados | Provedor, conta comercial, número, credenciais e templates aprovados |
 | Futuro — fora da primeira oferta | Plano e cobrança | Preço/limites definidos, checkout, webhooks idempotentes, reconciliação, inadimplência e cancelamento testados | Decisão comercial e provedor de pagamentos |
 | Concluído localmente | Editar/inativar clientes, serviços e profissionais | Corrigir cadastros sem exclusão de histórico; vínculos múltiplos; política para reservas futuras ao inativar profissional/serviço | Implementação |

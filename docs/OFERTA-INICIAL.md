@@ -1,4 +1,4 @@
-# Primeira oferta — Bela Agenda
+# Primeira oferta — Santa Agenda
 
 Escopo aprovado em 24/09/2026: agenda online com confirmação humana.
 
@@ -6,7 +6,7 @@ Escopo aprovado em 24/09/2026: agenda online com confirmação humana.
 
 **Seu cliente escolhe o horário. Sua equipe confirma.**
 
-O Bela Agenda organiza a rotina de salões e studios: serviços, profissionais, clientes e atendimentos em um só lugar. Compartilhe o link do estabelecimento para receber solicitações, revise os pedidos no painel e combine o atendimento diretamente com cada cliente.
+A Santa Agenda organiza a rotina de salões e studios: serviços, profissionais, clientes e atendimentos em um só lugar. Compartilhe o link do estabelecimento para receber solicitações, revise os pedidos no painel e combine o atendimento diretamente com cada cliente.
 
 Inclui agenda diária/semanal/lista, jornadas individuais e ausências, catálogo com profissionais vinculados, fila de solicitações, confirmação/cancelamento/reagendamento, histórico e controle de acesso da equipe. Os horários operam no fuso de Brasília.
 
@@ -20,8 +20,10 @@ Inclui agenda diária/semanal/lista, jornadas individuais e ausências, catálog
 
 Pedidos expiram em até 24 horas ou no início do atendimento, o que ocorrer primeiro. O estabelecimento precisa organizar quem acompanha a fila e realiza o contato. Links de WhatsApp abrem rascunhos que a pessoa revisa e envia; não há envio automático ou lembrete automático.
 
-## Condições ainda a definir
+## Condições comerciais
 
-Preço, forma de contratação e pagamento, eventual período de avaliação, canais/horários de suporte, identificação da operadora e documentos de privacidade/termos. Não divulgar valores ou benefícios provisórios como condições aprovadas.
+O fundador informou R$ 69 por estabelecimento/mês, com 30 dias grátis e cobrança automática externa pelo Mercado Pago. O checkout e suas regras de renovação/cancelamento ainda precisam ser conferidos antes da divulgação, conforme [PLANO-IMPLANTACAO.md](PLANO-IMPLANTACAO.md). Não foi aprovado limite de cinco profissionais nem promessa de capacidade ilimitada. A aplicação não sincroniza pagamentos ou acesso com o provedor.
+
+Ainda faltam canais/horários de suporte, identificação da operadora e documentos de privacidade/termos.
 
 A proposta pode ser apresentada para homologação acompanhada. A abertura comercial depende da implantação, entrega de e-mails, backup externo, alertas, documentos e validação de um dia de operação com um estabelecimento. Não prometer cobrança integrada, atendimento por IA ou WhatsApp automático nesta versão.

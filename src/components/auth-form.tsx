@@ -12,7 +12,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
 
   return <main className="auth-page">
     <section className="auth-card">
-      <div className="auth-brand"><span><Sparkles size={19} /></span>Bela</div>
+      <div className="auth-brand"><span><Sparkles size={19} /></span>Santa Agenda</div>
       <span className="eyebrow">{signup ? "COMECE AGORA" : "BEM-VINDO DE VOLTA"}</span>
       <h1>{signup ? "Crie seu espaço" : "Entre na sua conta"}</h1>
       <p>{signup ? "Configure o ambiente do seu estabelecimento em poucos passos." : "Acesse a agenda e cuide do seu negócio."}</p>

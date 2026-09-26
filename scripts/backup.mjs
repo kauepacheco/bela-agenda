@@ -8,7 +8,7 @@ let file;
 let owned = false;
 try {
   const database = connectionUrl(process.env.DATABASE_URL);
-  file = path.resolve(process.argv[2] ?? `backups/bela-${new Date().toISOString().replace(/[:.]/g, "-")}.dump`);
+  file = path.resolve(process.argv[2] ?? `backups/santa-agenda-${new Date().toISOString().replace(/[:.]/g, "-")}.dump`);
   await mkdir(path.dirname(file), { recursive: true, mode: 0o700 });
   await (await open(file, "wx", 0o600)).close();
   owned = true;

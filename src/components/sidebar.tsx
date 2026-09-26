@@ -21,7 +21,7 @@ export function Sidebar({ business, role }: { business: { name: string; slug: st
   const pathname = usePathname();
   return (
     <aside className="sidebar">
-      <div className="brand"><span className="brand-mark"><Sparkles size={18} /></span><span>Bela</span></div>
+      <div className="brand"><span className="brand-mark"><Sparkles size={18} /></span><span>Santa Agenda</span></div>
       <div className="workspace-card"><span className="workspace-avatar">{initials(business.name)}</span><div><strong>{business.name}</strong><small>{business.city}</small></div></div>
       <nav className="nav-list">
         <span className="nav-title">ESPAÇO DE TRABALHO</span>

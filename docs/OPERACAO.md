@@ -1,6 +1,6 @@
-# Operação do Bela Agenda
+# Operação da Santa Agenda
 
-Atualizado em 24/09/2026. Este roteiro prepara uma instalação; não indica que uma implantação já existe.
+Atualizado em 25/09/2026. Este roteiro descreve os procedimentos operacionais; a implantação de testes existente e os resultados confirmados estão em [PLANO-IMPLANTACAO.md](PLANO-IMPLANTACAO.md). Para e-mails reais e rotina acompanhada, execute o [roteiro de homologação](HOMOLOGACAO.md).
 
 ## Oferta e rotina da equipe
 
@@ -53,7 +53,7 @@ Configure backups automáticos criptografados fora do servidor e restrinja o ace
 Instale `pg_dump` e `pg_restore` de versão compatível com o servidor (18 nos testes deste repositório). Pode-se definir `PG_DUMP_BIN` e `PG_RESTORE_BIN` com caminhos dos executáveis.
 
 ```bash
-npm run ops:backup -- /caminho/privado/bela-2026-09-24.dump
+npm run ops:backup -- /caminho/privado/santa-agenda-2026-09-24.dump
 ```
 
 O script usa formato customizado do PostgreSQL, cria arquivo com permissão restrita e checksum SHA-256. Recusa sobrescrever um arquivo existente. Não passa senhas nos argumentos do processo e não imprime a conexão. O checksum detecta corrupção acidental, mas não substitui armazenamento confiável e criptografia. Alarmes devem detectar falha do comando ou ausência de uma cópia recente.
@@ -61,7 +61,7 @@ O script usa formato customizado do PostgreSQL, cria arquivo com permissão rest
 Crie um banco **novo e isolado**, cujo nome termine em `_restore_test`. Configure `RESTORE_DATABASE_URL` no ambiente apontando para ele. Não publique a instância restaurada nem habilite envios externos.
 
 ```bash
-RESTORE_CONFIRM=isolated-empty-database npm run ops:restore-check -- /caminho/privado/bela-2026-09-24.dump
+RESTORE_CONFIRM=isolated-empty-database npm run ops:restore-check -- /caminho/privado/santa-agenda-2026-09-24.dump
 ```
 
 A rotina valida o checksum, recusa destino com tabelas, restaura em transação sem apagar objetos existentes e consulta empresas, reservas e migrações. O dump deve vir de armazenamento confiável. Após a verificação, compare volumes e amostras com a origem, teste acesso e fluxos em ambiente isolado e destrua a cópia conforme a política de retenção. A rotina não troca a aplicação para o banco restaurado nem apaga o banco de teste.
@@ -72,7 +72,7 @@ Para testar automaticamente as rotinas com dados inteiramente fictícios:
 npm run ops:test-backup
 ```
 
-Esse comando cria PostgreSQL temporário, aplica migrações, carrega demonstração, gera e restaura uma cópia, compara dados e verifica recusa de checksum inválido, destino ocupado e arquivo de backup existente. Não usa o banco configurado do operador. Em 24/09/2026, esse teste passou com PostgreSQL 18 e clientes 18.6. A restauração de um backup externo do futuro provedor continua pendente.
+Esse comando cria PostgreSQL temporário, aplica migrações, carrega demonstração, gera e restaura uma cópia, compara dados e verifica recusa de checksum inválido, destino ocupado e arquivo de backup existente. Não usa o banco configurado do operador. Em 24/09/2026, esse teste passou com PostgreSQL 18 e clientes 18.6. A restauração de um backup externo do Supabase continua pendente.
 
 ## Observabilidade e incidentes
 

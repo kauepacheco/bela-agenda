@@ -144,7 +144,7 @@ export function OnboardingForm({
 
   return <main className="onboarding-page">
     <aside className="onboarding-aside">
-      <div className="onboarding-brand"><span><Sparkles size={19} /></span>Bela</div>
+      <div className="onboarding-brand"><span><Sparkles size={19} /></span>Santa Agenda</div>
       <div className="onboarding-copy">
         <span className="eyebrow">PRIMEIROS PASSOS</span>
         <h1>Vamos preparar seu espaço.</h1>

@@ -7,7 +7,7 @@ const body = DM_Sans({ subsets: ["latin"], variable: "--font-body" });
 const display = Manrope({ subsets: ["latin"], variable: "--font-display" });
 
 export const metadata: Metadata = {
-  title: "Bela Agenda — agenda online para salões",
+  title: "Santa Agenda — agenda online para salões",
   description: "Agenda online para salões e studios: horários, equipe e solicitações com confirmação pelo estabelecimento.",
 };
 

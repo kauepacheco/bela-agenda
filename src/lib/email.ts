@@ -64,15 +64,15 @@ async function sendEmail(input: {
 export async function sendPasswordResetEmail({ to, resetUrl }: PasswordResetEmail) {
   await sendEmail({
     to,
-    subject: "Redefina sua senha do Bela Agenda",
-    developmentLog: `[Bela Agenda] Link de recuperação para ${to}: ${resetUrl}`,
+    subject: "Redefina sua senha da Santa Agenda",
+    developmentLog: `[Santa Agenda] Link de recuperação para ${to}: ${resetUrl}`,
     text: [
-        "Recebemos uma solicitação para redefinir sua senha do Bela Agenda.",
+        "Recebemos uma solicitação para redefinir sua senha da Santa Agenda.",
         `Acesse o link a seguir em até 30 minutos: ${resetUrl}`,
         "Se você não fez esta solicitação, ignore esta mensagem.",
       ].join("\n\n"),
     html: `
-        <p>Recebemos uma solicitação para redefinir sua senha do Bela Agenda.</p>
+        <p>Recebemos uma solicitação para redefinir sua senha da Santa Agenda.</p>
         <p><a href="${resetUrl}">Redefinir minha senha</a></p>
         <p>O link é válido por 30 minutos e só pode ser usado uma vez.</p>
         <p>Se você não fez esta solicitação, ignore esta mensagem.</p>
@@ -91,8 +91,8 @@ export async function sendTeamInvitationEmail({
   const safeInvitationUrl = escapeHtml(invitationUrl);
   await sendEmail({
     to,
-    subject: `Convite para participar de ${businessName} no Bela Agenda`,
-    developmentLog: `[Bela Agenda] Convite para ${to}: ${invitationUrl}`,
+    subject: `Convite para participar de ${businessName} na Santa Agenda`,
+    developmentLog: `[Santa Agenda] Convite para ${to}: ${invitationUrl}`,
     text: [
       `Você foi convidado para participar de ${businessName} como ${roleName}.`,
       `Aceite o convite em até 7 dias: ${invitationUrl}`,

@@ -1,4 +1,4 @@
-# Roadmap do Bela Agenda
+# Roadmap da Santa Agenda
 
 Última atualização: 25 de setembro de 2026.
 
@@ -8,7 +8,7 @@ Este documento é a referência de continuidade do produto. Ao concluir ou alter
 
 ## Visão do produto
 
-A primeira oferta do Bela Agenda é uma agenda online com confirmação humana para salões e studios de beleza com equipes de 2 a 10 profissionais. Escopo escolhido explicitamente pelo fundador em 24/09/2026.
+A primeira oferta da Santa Agenda é uma agenda online com confirmação humana para salões e studios de beleza com equipes de 2 a 10 profissionais. Escopo escolhido explicitamente pelo fundador em 24/09/2026.
 
 Proposta de valor:
 
@@ -23,7 +23,7 @@ WhatsApp automático e cobrança integrada são evoluções opcionais. M3 e os i
 - Região comercial inicial: Itajaí, Santa Catarina.
 - Expansão regional: Balneário Camboriú, Navegantes, Camboriú e Itapema.
 - Disponibilidade do produto: todo o Brasil.
-- Preço inicial em estudo: R$ 99 a R$ 179 por estabelecimento/mês.
+- Oferta informada pelo fundador: R$ 69 por estabelecimento/mês, com 30 dias grátis e cobrança externa pelo Mercado Pago; condições do checkout ainda precisam ser conferidas.
 
 ## Estado atual — M0: protótipo funcional
 
@@ -44,10 +44,10 @@ WhatsApp automático e cobrança integrada são evoluções opcionais. M3 e os i
 Limitações atuais:
 
 - O onboarding inclui horários de funcionamento; profissionais podem ajustar jornadas em Configurações.
-- A implantação de homologação com PostgreSQL gerenciado ainda não foi criada.
+- Implantação de testes no Render com Supabase e Resend disponível em `https://santaagenda.kapio.com.br`; saúde e recuperação de senha confirmadas pelo fundador em 25/09/2026. Convites e homologação completa pendentes.
 - Jornadas individuais, pausas e bloqueios estão implementados e testados. A homologação com estabelecimentos reais permanece pendente.
 - Comunicação com clientes é feita pela equipe; os atalhos abrem rascunhos de WhatsApp.
-- Preço e forma de contratação precisam ser definidos; não há cobrança dentro do aplicativo.
+- Preço e período gratuito foram informados; falta validar checkout, contratação e cancelamento. Não há sincronização de cobrança dentro do aplicativo.
 
 ## M1: fundação de SaaS multiempresa
 
@@ -187,12 +187,19 @@ Estes itens só devem entrar após validação comercial da agenda:
 
 ## Próxima tarefa
 
-Validar a rotina acompanhada no ambiente local: acessar `http://localhost:3000`, revisar e salvar os horários em Configurações e simular solicitações e confirmações com o responsável pelo estabelecimento. Docker/WSL, migrações e validação automatizada completa (incluindo navegador e restauração) passaram em 25/09. Depois, preparar a homologação externa com hospedagem, domínio, PostgreSQL gerenciado e remetente de e-mail; seguir `OPERACAO.md` e validar backup externo. Não exigir WhatsApp oficial nem cobrança integrada para este lançamento. Definir preço, contratação, identidade comercial, suporte, retenção e documentos antes de publicar.
+O fundador fará o push do commit de revisão/marca para `origin/main`. Depois, confirmar o deploy desse commit no Render e a marca Santa Agenda nas telas e e-mails. O site publicado anteriormente ainda exibia Bela; o domínio novo não altera o código publicado.
+
+Testar convite de funcionário no ambiente online `https://santaagenda.kapio.com.br`: proprietário abre Equipe, convida outro e-mail controlado, destinatário abre em janela anônima, aceita e confirma acesso como funcionário. Depois conferir restrições, uso único e remoção de acesso. O fundador pediu para retomar esse teste na próxima sessão; ainda não foi executado/confirmado.
+
+Em 25/09/2026 foram configurados Render, Supabase, domínio/HTTPS na Cloudflare e Resend; o fundador confirmou `/api/health` com `{"status":"ok"}` e recebimento, redefinição e login no fluxo de recuperação de senha. Registro completo em [PLANO-IMPLANTACAO.md](PLANO-IMPLANTACAO.md) e evidências/pendências em [HOMOLOGACAO.md](HOMOLOGACAO.md). Não repetir criação de contas ou configuração já concluída. Não presumir que alterações locais sem commit estão publicadas; registrar o commit remoto antes de atualizar a implantação.
+
+Continuam pendentes testes online da agenda, `ops:check`, backup/restauração externos, manutenção/alertas e piloto com estabelecimento real. WhatsApp automático e cobrança integrada não bloqueiam a primeira oferta.
 
 ## Decisões registradas
 
 | Data | Decisão | Motivo |
 | --- | --- | --- |
+| 2026-09-25 | Implantar testes no Render gratuito, Supabase e Resend, com DNS na Cloudflare; manter site principal na Vercel. | Escolha do fundador para tentar economizar. Domínio, saúde e recuperação de senha confirmados; próximo teste é convite de funcionário. |
 | 2026-09-25 | Oferecer validação completa em Docker com bancos descartáveis e execução sem rede externa. | Permitir repetir navegador e backup no WSL sem instalar dependências do sistema ou usar o volume local. |
 | 2026-09-25 | Comparar as migrações aplicadas e seus checksums com a versão distribuída no `ops:check`. | Uma conexão válida e a ausência de migrações com erro não garantem que o banco recebeu todas as atualizações. |
 | 2026-09-24 | Lançar primeiro a agenda online com confirmação humana; adiar WhatsApp automático e cobrança integrada. | Escolha explícita do fundador. A equipe usa fila de solicitações e faz o contato manualmente; M3 e automação de M4 deixam de bloquear o lançamento. |

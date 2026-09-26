@@ -10,7 +10,7 @@ import {
 } from "@/app/password-reset-actions";
 
 function Brand() {
-  return <div className="auth-brand"><span><Sparkles size={19} /></span>Bela</div>;
+  return <div className="auth-brand"><span><Sparkles size={19} /></span>Santa Agenda</div>;
 }
 
 export function ForgotPasswordForm() {

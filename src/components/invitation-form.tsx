@@ -19,7 +19,7 @@ export function InvitationForm({ token, invitation }: { token: string; invitatio
   );
 
   return <main className="auth-page"><section className="auth-card">
-    <div className="auth-brand"><span><Sparkles size={19} /></span>Bela</div>
+    <div className="auth-brand"><span><Sparkles size={19} /></span>Santa Agenda</div>
     <span className="eyebrow">CONVITE DE EQUIPE</span>
     {!invitation ? <>
       <h1>Convite indisponível</h1>
